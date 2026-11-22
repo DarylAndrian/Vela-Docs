@@ -1,0 +1,764 @@
+/* ════════════════════════════════════════════════════════════════════════════
+ *  Vela Precision — Design System Stylesheet for Qt
+ * ════════════════════════════════════════════════════════════════════════════
+ *  Converted from the Stitch "Vela Precision" design tokens.
+ *  Source: stitch_vela_docs_ui_system/vela_precision/DESIGN.md
+ * ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Light theme tokens (CSS variables) ───────────────────────────────────── */
+/* ── Design tokens ─────────────────────────────────────────────────────────
+ * The Material/"Vela Precision" token block (surface, primary, shadow-*, font-*)
+ * used to be declared here as a :root { --token: value; } block. Qt Style Sheets
+ * have no CSS custom properties and no :root selector — the parser rejected the
+ * whole file and the application came up unstyled ("Could not parse application
+ * stylesheet"). None of the rules below referenced a token via var(), so the
+ * values were dead weight; they now live in the design source this file was
+ * converted from (see the header above).
+ */
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+ *  QSS PALETTE — Qt color roles
+ *  Maps design tokens to Qt's QPalette roles for native widget coloring.
+ * ════════════════════════════════════════════════════════════════════════════ */
+
+* {
+    font-family: "Inter", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+    color: #141b2b;
+    background-color: transparent;
+}
+
+/* ── Base palette ────────────────────────────────────────────────────────── */
+QMainWindow,
+QWidget#VelaMainWindow,
+QWidget#VelaWelcome,
+QWidget#VelaEditorArea {
+    background-color: #f9f9ff;
+}
+
+/* ── Top header bar (logo + version + theme + settings) ──────────────────── */
+QWidget#VelaTopBar {
+    background-color: #f9f9ff;
+    border-bottom: 1px solid #c7c4d8;
+    max-height: 48px;
+    min-height: 48px;
+}
+
+/* ── Document tab strip ──────────────────────────────────────────────────── */
+QWidget#VelaTabStrip {
+    background-color: #e9edff;
+    border-top: 1px solid #c7c4d8;
+    border-bottom: 1px solid #c7c4d8;
+    min-height: 40px;
+    max-height: 40px;
+}
+
+QToolBar#VelaTabBar {
+    background-color: transparent;
+    border: none;
+    spacing: 0px;
+}
+
+QToolBar#VelaTabBar QToolButton {
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 6px 14px;
+    color: #464555;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+QToolBar#VelaTabBar QToolButton:hover {
+    background-color: #e1e8fd;
+    color: #141b2b;
+}
+
+QToolBar#VelaTabBar QToolButton:checked {
+    background-color: #ffffff;
+    color: #3525cd;
+    border-bottom: 2px solid #4f46e5;
+}
+
+/* ── Compact formatting toolbar ──────────────────────────────────────────── */
+QToolBar#VelaRibbon {
+    background-color: #f1f3ff;
+    border-bottom: 1px solid #c7c4d8;
+    spacing: 4px;
+    padding: 6px 12px;
+    min-height: 48px;
+}
+
+QToolBar#VelaRibbon QToolButton {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: #464555;
+    font-size: 13px;
+    min-width: 24px;
+    min-height: 28px;
+}
+
+QToolBar#VelaRibbon QToolButton:hover {
+    background-color: #e9edff;
+    color: #141b2b;
+}
+
+QToolBar#VelaRibbon QToolButton:checked,
+QToolBar#VelaRibbon QToolButton:pressed {
+    background-color: #dce2f7;
+    color: #3525cd;
+}
+
+QToolBar#VelaRibbon QToolButton:disabled {
+    color: #c7c4d8;
+}
+
+/* ── Left icon rail ──────────────────────────────────────────────────────── */
+QWidget#VelaLeftRail {
+    background-color: #f1f3ff;
+    border-right: 1px solid #c7c4d8;
+    min-width: 48px;
+    max-width: 48px;
+}
+
+QToolBar#VelaLeftRailBar {
+    background-color: transparent;
+    border: none;
+}
+
+QToolBar#VelaLeftRailBar QToolButton {
+    background-color: transparent;
+    border: none;
+    border-radius: 16px;
+    padding: 8px;
+    margin: 2px 8px;
+    color: #464555;
+    min-width: 32px;
+    min-height: 32px;
+}
+
+QToolBar#VelaLeftRailBar QToolButton:hover {
+    background-color: #dce2f7;
+}
+
+QToolBar#VelaLeftRailBar QToolButton:checked {
+    background-color: #e2dfff;
+    color: #3525cd;
+}
+
+/* ── Right sidebar ───────────────────────────────────────────────────────── */
+QDockWidget#VelaSidebar {
+    titlebar-close-icon: none;
+    titlebar-normal-icon: none;
+}
+
+QDockWidget#VelaSidebar::title {
+    background-color: #f1f3ff;
+    border-bottom: 1px solid #c7c4d8;
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    color: #141b2b;
+}
+
+QWidget#VelaSidebarContents {
+    background-color: #ffffff;
+}
+
+QTabWidget#VelaSidebarTabs::pane {
+    border: none;
+    background-color: #ffffff;
+}
+
+QTabWidget#VelaSidebarTabs::tab-bar {
+    left: 0;
+}
+
+QTabWidget#VelaSidebarTabs QTabBar::tab {
+    background-color: #f1f3ff;
+    color: #464555;
+    padding: 8px 16px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-right: 0px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+QTabWidget#VelaSidebarTabs QTabBar::tab:hover {
+    color: #141b2b;
+    background-color: #e9edff;
+}
+
+QTabWidget#VelaSidebarTabs QTabBar::tab:selected {
+    color: #3525cd;
+    border-bottom: 2px solid #4f46e5;
+    background-color: #ffffff;
+}
+
+/* ── Outline list ────────────────────────────────────────────────────────── */
+QListWidget#VelaOutlineList {
+    background-color: #ffffff;
+    border: none;
+    outline: 0;
+    padding: 8px 4px;
+}
+
+QListWidget#VelaOutlineList::item {
+    color: #464555;
+    padding: 4px 8px 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    border: none;
+}
+
+QListWidget#VelaOutlineList::item:hover {
+    background-color: #f1f3ff;
+    color: #141b2b;
+}
+
+QListWidget#VelaOutlineList::item:selected {
+    background-color: #f1f3ff;
+    color: #3525cd;
+    font-weight: 600;
+    border-left: 2px solid #4f46e5;
+    padding-left: 10px;
+}
+
+/* ── Editor canvas ────────────────────────────────────────────────────────── */
+QWidget#VelaEditorCanvas {
+    background-color: #f5f5f7;
+}
+
+QWidget#VelaPage {
+    background-color: #ffffff;
+    border: 1px solid #dce2f7;
+    border-radius: 8px;
+}
+
+/* ── Welcome screen ───────────────────────────────────────────────────────── */
+QWidget#VelaWelcome {
+    background-color: #f9f9ff;
+}
+
+QLabel#VelaWelcomeHero {
+    color: #141b2b;
+    font-family: "Source Serif 4", "Source Serif Pro", Georgia, serif;
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+
+QLabel#VelaWelcomeTagline {
+    color: #464555;
+    font-size: 14px;
+    line-height: 20px;
+    max-width: 600px;
+}
+
+QLabel#VelaWelcomeSection {
+    color: #141b2b;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 24px;
+}
+
+QPushButton#VelaTemplateCard {
+    background-color: #ffffff;
+    border: 1px solid #c7c4d8;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: left;
+    color: #141b2b;
+    font-size: 12px;
+    font-weight: 500;
+    min-height: 160px;
+}
+
+QPushButton#VelaTemplateCard:hover {
+    border-color: #4f46e5;
+    background-color: #ffffff;
+}
+
+QPushButton#VelaTemplateCard:pressed {
+    background-color: #f1f3ff;
+}
+
+QWidget#VelaTemplateThumb {
+    background-color: #f9f9ff;
+    border: 1px solid #dce2f7;
+    border-radius: 4px;
+    min-height: 100px;
+}
+
+QPushButton#VelaRecentFileCard {
+    background-color: #ffffff;
+    border: 1px solid #c7c4d8;
+    border-radius: 8px;
+    text-align: left;
+    color: #141b2b;
+}
+
+QPushButton#VelaRecentFileCard:hover {
+    border-color: #777587;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Status bar ───────────────────────────────────────────────────────────── */
+QStatusBar#VelaStatusBar,
+QStatusBar {
+    background-color: #e9edff;
+    border-top: 1px solid #c7c4d8;
+    min-height: 28px;
+    color: #464555;
+    font-size: 11px;
+}
+
+QStatusBar QLabel {
+    color: #464555;
+    font-size: 11px;
+    padding: 0 4px;
+}
+
+QStatusBar QLabel:hover {
+    color: #3525cd;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+QPushButton {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: #141b2b;
+    padding: 6px 12px;
+    font-size: 13px;
+    line-height: 20px;
+    font-weight: 400;
+}
+
+QPushButton:hover {
+    background-color: #f1f3ff;
+}
+
+QPushButton:pressed {
+    background-color: #e9edff;
+}
+
+QPushButton[primary="true"] {
+    background-color: #4f46e5;
+    color: #ffffff;
+    border: 1px solid #4f46e5;
+}
+
+QPushButton[primary="true"]:hover {
+    background-color: #3525cd;
+}
+
+QPushButton[primary="true"]:pressed {
+    background-color: #2a1fb0;
+}
+
+QPushButton[secondary="true"] {
+    background-color: transparent;
+    color: #141b2b;
+    border: 1px solid #c7c4d8;
+}
+
+QPushButton[secondary="true"]:hover {
+    background-color: #f1f3ff;
+}
+
+/* ── Inputs ───────────────────────────────────────────────────────────────── */
+QLineEdit,
+QSpinBox,
+QDoubleSpinBox,
+QComboBox,
+QTextEdit,
+QPlainTextEdit {
+    background-color: #ffffff;
+    border: 1px solid #c7c4d8;
+    border-radius: 4px;
+    padding: 6px 8px;
+    color: #141b2b;
+    selection-background-color: #4f46e5;
+    selection-color: #ffffff;
+    min-height: 18px;
+}
+
+QLineEdit:focus,
+QSpinBox:focus,
+QDoubleSpinBox:focus,
+QComboBox:focus,
+QTextEdit:focus,
+QPlainTextEdit:focus {
+    border: 1px solid #4f46e5;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #ffffff;
+    border: 1px solid #c7c4d8;
+    selection-background-color: #f1f3ff;
+    selection-color: #3525cd;
+    outline: 0;
+}
+
+/* ── Menus ────────────────────────────────────────────────────────────────── */
+QMenuBar {
+    background-color: #f9f9ff;
+    color: #141b2b;
+    padding: 2px;
+}
+
+QMenuBar::item {
+    padding: 4px 10px;
+    border-radius: 4px;
+    background-color: transparent;
+}
+
+QMenuBar::item:selected {
+    background-color: #f1f3ff;
+    color: #3525cd;
+}
+
+QMenu {
+    background-color: #ffffff;
+    border: 1px solid #c7c4d8;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+QMenu::item {
+    padding: 6px 24px 6px 16px;
+    border-radius: 4px;
+    color: #141b2b;
+}
+
+QMenu::item:selected {
+    background-color: #f1f3ff;
+    color: #3525cd;
+}
+
+QMenu::separator {
+    height: 1px;
+    background-color: #c7c4d8;
+    margin: 4px 8px;
+}
+
+/* ── Scrollbars ───────────────────────────────────────────────────────────── */
+QScrollBar:vertical {
+    background: transparent;
+    width: 8px;
+    margin: 0;
+}
+QScrollBar::handle:vertical {
+    background: #d3daef;
+    border-radius: 4px;
+    min-height: 24px;
+}
+QScrollBar::handle:vertical:hover {
+    background: #c7c4d8;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+QScrollBar:horizontal {
+    background: transparent;
+    height: 8px;
+}
+QScrollBar::handle:horizontal {
+    background: #d3daef;
+    border-radius: 4px;
+    min-width: 24px;
+}
+QScrollBar::handle:horizontal:hover {
+    background: #c7c4d8;
+}
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    width: 0px;
+}
+
+/* ── Tooltips ─────────────────────────────────────────────────────────────── */
+QToolTip {
+    background-color: #293040;
+    color: #edf0ff;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+/* ── Dialogs ──────────────────────────────────────────────────────────────── */
+QDialog {
+    background-color: #ffffff;
+}
+
+/* ── Splitters ────────────────────────────────────────────────────────────── */
+QSplitter::handle {
+    background-color: #c7c4d8;
+}
+QSplitter::handle:horizontal {
+    width: 1px;
+}
+QSplitter::handle:vertical {
+    height: 1px;
+}
+
+/* ── Selection / cursor ───────────────────────────────────────────────────── */
+* {
+    selection-background-color: #e2dfff;
+    selection-color: #0f0069;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+ *  DARK MODE — applied when [dark="true"] attribute is set on the main window.
+ * ════════════════════════════════════════════════════════════════════════════ */
+
+QMainWindow[dark="true"],
+QMainWindow[dark="true"] QWidget#VelaMainWindow,
+QMainWindow[dark="true"] QWidget#VelaWelcome,
+QMainWindow[dark="true"] QWidget#VelaEditorArea {
+    background-color: #0f0f0f;
+    color: #f5f5f5;
+}
+
+QMainWindow[dark="true"] QWidget#VelaTopBar {
+    background-color: #0f0f0f;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+QMainWindow[dark="true"] QWidget#VelaTabStrip {
+    background-color: #1a1a1a;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+QMainWindow[dark="true"] QToolBar#VelaTabBar QToolButton {
+    color: #a3a3a3;
+}
+QMainWindow[dark="true"] QToolBar#VelaTabBar QToolButton:hover {
+    background-color: #262626;
+    color: #f5f5f5;
+}
+QMainWindow[dark="true"] QToolBar#VelaTabBar QToolButton:checked {
+    background-color: #262626;
+    color: #c3c0ff;
+    border-bottom: 2px solid #818cf8;
+}
+
+QMainWindow[dark="true"] QToolBar#VelaRibbon {
+    background-color: #1a1a1a;
+    border-bottom: 1px solid #2a2a2a;
+}
+QMainWindow[dark="true"] QToolBar#VelaRibbon QToolButton {
+    color: #a3a3a3;
+}
+QMainWindow[dark="true"] QToolBar#VelaRibbon QToolButton:hover {
+    background-color: #262626;
+    color: #f5f5f5;
+}
+QMainWindow[dark="true"] QToolBar#VelaRibbon QToolButton:checked,
+QMainWindow[dark="true"] QToolBar#VelaRibbon QToolButton:pressed {
+    background-color: #2a2a2a;
+    color: #c3c0ff;
+}
+
+QMainWindow[dark="true"] QWidget#VelaLeftRail {
+    background-color: #1a1a1a;
+    border-right: 1px solid #2a2a2a;
+}
+QMainWindow[dark="true"] QToolBar#VelaLeftRailBar QToolButton {
+    color: #a3a3a3;
+}
+QMainWindow[dark="true"] QToolBar#VelaLeftRailBar QToolButton:hover {
+    background-color: #2a2a2a;
+}
+QMainWindow[dark="true"] QToolBar#VelaLeftRailBar QToolButton:checked {
+    background-color: #2a2a2a;
+    color: #c3c0ff;
+}
+
+QMainWindow[dark="true"] QDockWidget#VelaSidebar::title {
+    background-color: #1a1a1a;
+    border-bottom: 1px solid #2a2a2a;
+    color: #f5f5f5;
+}
+QMainWindow[dark="true"] QWidget#VelaSidebarContents,
+QMainWindow[dark="true"] QTabWidget#VelaSidebarTabs::pane {
+    background-color: #1a1a1a;
+}
+QMainWindow[dark="true"] QTabWidget#VelaSidebarTabs QTabBar::tab {
+    background-color: #1a1a1a;
+    color: #a3a3a3;
+}
+QMainWindow[dark="true"] QTabWidget#VelaSidebarTabs QTabBar::tab:hover {
+    color: #f5f5f5;
+    background-color: #262626;
+}
+QMainWindow[dark="true"] QTabWidget#VelaSidebarTabs QTabBar::tab:selected {
+    color: #c3c0ff;
+    border-bottom: 2px solid #818cf8;
+    background-color: #262626;
+}
+
+QMainWindow[dark="true"] QListWidget#VelaOutlineList {
+    background-color: #1a1a1a;
+}
+QMainWindow[dark="true"] QListWidget#VelaOutlineList::item {
+    color: #a3a3a3;
+}
+QMainWindow[dark="true"] QListWidget#VelaOutlineList::item:hover {
+    background-color: #262626;
+    color: #f5f5f5;
+}
+QMainWindow[dark="true"] QListWidget#VelaOutlineList::item:selected {
+    background-color: #262626;
+    color: #c3c0ff;
+    border-left: 2px solid #818cf8;
+}
+
+QMainWindow[dark="true"] QWidget#VelaEditorCanvas {
+    background-color: #0a0a0a;
+}
+
+QMainWindow[dark="true"] QWidget#VelaPage {
+    background-color: #1a1a1a;
+    border: 1px solid #2a2a2a;
+}
+
+QMainWindow[dark="true"] QWidget#VelaWelcome {
+    background-color: #0f0f0f;
+}
+QMainWindow[dark="true"] QLabel#VelaWelcomeHero {
+    color: #f5f5f5;
+}
+QMainWindow[dark="true"] QLabel#VelaWelcomeTagline {
+    color: #a3a3a3;
+}
+QMainWindow[dark="true"] QLabel#VelaWelcomeSection {
+    color: #f5f5f5;
+}
+QMainWindow[dark="true"] QPushButton#VelaTemplateCard {
+    background-color: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    color: #f5f5f5;
+}
+QMainWindow[dark="true"] QPushButton#VelaTemplateCard:hover {
+    border-color: #818cf8;
+}
+QMainWindow[dark="true"] QWidget#VelaTemplateThumb {
+    background-color: #0f0f0f;
+    border: 1px solid #2a2a2a;
+}
+QMainWindow[dark="true"] QPushButton#VelaRecentFileCard {
+    background-color: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    color: #f5f5f5;
+}
+QMainWindow[dark="true"] QPushButton#VelaRecentFileCard:hover {
+    border-color: #4a4a4a;
+}
+
+QMainWindow[dark="true"] QStatusBar {
+    background-color: #1a1a1a;
+    border-top: 1px solid #2a2a2a;
+    color: #a3a3a3;
+}
+QMainWindow[dark="true"] QStatusBar QLabel {
+    color: #a3a3a3;
+}
+QMainWindow[dark="true"] QStatusBar QLabel:hover {
+    color: #c3c0ff;
+}
+
+QMainWindow[dark="true"] QPushButton {
+    color: #f5f5f5;
+}
+QMainWindow[dark="true"] QPushButton:hover {
+    background-color: #262626;
+}
+QMainWindow[dark="true"] QPushButton[primary="true"] {
+    background-color: #818cf8;
+    color: #0f0f0f;
+    border: 1px solid #818cf8;
+}
+QMainWindow[dark="true"] QPushButton[primary="true"]:hover {
+    background-color: #a5b4fc;
+}
+QMainWindow[dark="true"] QPushButton[secondary="true"] {
+    border: 1px solid #4a4a4a;
+    color: #f5f5f5;
+}
+
+QMainWindow[dark="true"] QLineEdit,
+QMainWindow[dark="true"] QSpinBox,
+QMainWindow[dark="true"] QDoubleSpinBox,
+QMainWindow[dark="true"] QComboBox,
+QMainWindow[dark="true"] QTextEdit,
+QMainWindow[dark="true"] QPlainTextEdit {
+    background-color: #262626;
+    border: 1px solid #4a4a4a;
+    color: #f5f5f5;
+    selection-background-color: #818cf8;
+    selection-color: #0f0f0f;
+}
+QMainWindow[dark="true"] QLineEdit:focus,
+QMainWindow[dark="true"] QSpinBox:focus,
+QMainWindow[dark="true"] QDoubleSpinBox:focus,
+QMainWindow[dark="true"] QComboBox:focus,
+QMainWindow[dark="true"] QTextEdit:focus,
+QMainWindow[dark="true"] QPlainTextEdit:focus {
+    border: 1px solid #818cf8;
+}
+
+QMainWindow[dark="true"] QMenuBar {
+    background-color: #0f0f0f;
+    color: #f5f5f5;
+}
+QMainWindow[dark="true"] QMenuBar::item:selected {
+    background-color: #262626;
+    color: #c3c0ff;
+}
+QMainWindow[dark="true"] QMenu {
+    background-color: #1a1a1a;
+    border: 1px solid #2a2a2a;
+}
+QMainWindow[dark="true"] QMenu::item {
+    color: #f5f5f5;
+}
+QMainWindow[dark="true"] QMenu::item:selected {
+    background-color: #262626;
+    color: #c3c0ff;
+}
+QMainWindow[dark="true"] QMenu::separator {
+    background-color: #2a2a2a;
+}
+
+QMainWindow[dark="true"] QScrollBar::handle:vertical,
+QMainWindow[dark="true"] QScrollBar::handle:horizontal {
+    background: #2a2a2a;
+}
+QMainWindow[dark="true"] QScrollBar::handle:vertical:hover,
+QMainWindow[dark="true"] QScrollBar::handle:horizontal:hover {
+    background: #3a3a3a;
+}
+
+QMainWindow[dark="true"] QToolTip {
+    background-color: #293040;
+    color: #edf0ff;
+}
+
+QMainWindow[dark="true"] QDialog {
+    background-color: #1a1a1a;
+}
+
+QMainWindow[dark="true"] QSplitter::handle {
+    background-color: #2a2a2a;
+}
+
+QMainWindow[dark="true"] * {
+    selection-background-color: #2a2a4a;
+    selection-color: #c3c0ff;
+}

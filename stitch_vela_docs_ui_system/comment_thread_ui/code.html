@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Comment Thread (Light Mode)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400&amp;family=Source+Serif+4:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-background": "#141b2b",
+                      "secondary-container": "#8792fe",
+                      "on-secondary-container": "#17228f",
+                      "surface-container": "#e9edff",
+                      "on-tertiary": "#ffffff",
+                      "inverse-on-surface": "#edf0ff",
+                      "surface-dim": "#d3daef",
+                      "secondary": "#4953bc",
+                      "on-surface-variant": "#464555",
+                      "on-secondary-fixed": "#000767",
+                      "on-primary-fixed": "#0f0069",
+                      "on-tertiary-fixed-variant": "#7b2f00",
+                      "error-container": "#ffdad6",
+                      "surface-container-low": "#f1f3ff",
+                      "primary-fixed": "#e2dfff",
+                      "on-primary": "#ffffff",
+                      "on-secondary": "#ffffff",
+                      "outline": "#777587",
+                      "on-primary-container": "#dad7ff",
+                      "on-secondary-fixed-variant": "#2f3aa3",
+                      "secondary-fixed": "#e0e0ff",
+                      "on-primary-fixed-variant": "#3323cc",
+                      "on-tertiary-container": "#ffd2be",
+                      "surface-tint": "#4d44e3",
+                      "surface-variant": "#dce2f7",
+                      "surface-bright": "#f9f9ff",
+                      "on-tertiary-fixed": "#351000",
+                      "on-error-container": "#93000a",
+                      "surface-container-high": "#e1e8fd",
+                      "background": "#f9f9ff",
+                      "primary-fixed-dim": "#c3c0ff",
+                      "inverse-primary": "#c3c0ff",
+                      "on-error": "#ffffff",
+                      "surface-container-highest": "#dce2f7",
+                      "on-surface": "#141b2b",
+                      "primary": "#3525cd",
+                      "secondary-fixed-dim": "#bdc2ff",
+                      "tertiary-fixed-dim": "#ffb695",
+                      "inverse-surface": "#293040",
+                      "tertiary": "#7e3000",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary-container": "#a44100",
+                      "primary-container": "#4f46e5",
+                      "outline-variant": "#c7c4d8",
+                      "tertiary-fixed": "#ffdbcc",
+                      "error": "#ba1a1a",
+                      "surface": "#f9f9ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "2xl": "32px",
+                      "page-margin": "min(10%, 96px)",
+                      "lg": "16px",
+                      "base": "4px",
+                      "xs": "4px",
+                      "sm": "8px",
+                      "gutter": "16px",
+                      "xl": "24px",
+                      "md": "12px",
+                      "4xl": "64px",
+                      "3xl": "48px"
+              },
+              "fontFamily": {
+                      "display-editor": [
+                              "\"Source Serif 4\""
+                      ],
+                      "body-ui": [
+                              "Inter"
+                      ],
+                      "mono": [
+                              "JetBrains Mono"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "h2-ui": [
+                              "Inter"
+                      ],
+                      "body-editor": [
+                              "\"Source Serif 4\""
+                      ],
+                      "h1-ui": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "display-editor": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-ui": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "mono": [
+                              "13px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "h2-ui": [
+                              "18px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-editor": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "h1-ui": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-sm": [
+                              "11px",
+                              {
+                                      "lineHeight": "14px",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+          .comment-thread-line {
+              position: absolute;
+              border-top: 1px dashed theme('colors.primary');
+              opacity: 0.4;
+              pointer-events: none;
+              z-index: 10;
+          }
+      </style>
+</head>
+<body class="bg-background text-on-background font-body-ui min-h-screen flex flex-col antialiased selection:bg-surface-tint selection:text-white">
+<!-- TopAppBar -->
+<header class="bg-background border-b border-outline-variant flex items-center justify-between px-lg h-12 w-full fixed top-0 z-50">
+<div class="flex items-center gap-md">
+<span class="font-h1-ui text-h1-ui font-bold text-primary">Vela Docs</span>
+<nav class="hidden md:flex items-center gap-sm ml-xl">
+<a class="font-body-ui text-body-ui text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded" href="#">File</a>
+<a class="font-body-ui text-body-ui text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded" href="#">Edit</a>
+<a class="font-body-ui text-body-ui text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded" href="#">View</a>
+<a class="font-body-ui text-body-ui text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded" href="#">Insert</a>
+<a class="font-body-ui text-body-ui text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded" href="#">Format</a>
+<a class="font-body-ui text-body-ui text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded" href="#">Tools</a>
+<a class="font-body-ui text-body-ui text-on-surface-variant hover:bg-surface-container-low transition-colors px-sm py-xs rounded" href="#">Help</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<button class="bg-primary text-on-primary font-label-md text-label-md px-md py-xs rounded-lg hover:opacity-90 transition-opacity">Share</button>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container-low p-xs rounded-full transition-colors" data-icon="account_circle">account_circle</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-container-low p-xs rounded-full transition-colors" data-icon="settings">settings</span>
+</div>
+</header>
+<!-- SideNavBar & Main Content Wrapper -->
+<div class="flex flex-1 pt-12 pb-8">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-12 bottom-8 z-40 flex flex-col bg-surface-container-low border-r border-outline-variant w-[240px] hidden md:flex">
+<div class="px-lg py-md border-b border-outline-variant">
+<h2 class="font-h2-ui text-h2-ui text-on-surface">Navigation</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Document structure</p>
+</div>
+<nav class="flex-1 py-sm overflow-y-auto">
+<a class="flex items-center gap-md px-lg py-sm text-on-surface-variant hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
+<span class="font-label-md text-label-md">Outline</span>
+</a>
+<a class="flex items-center gap-md px-lg py-sm bg-surface-container-high text-primary font-bold border-l-2 border-primary" href="#">
+<span class="material-symbols-outlined" data-icon="comment">comment</span>
+<span class="font-label-md text-label-md">Comments</span>
+</a>
+<a class="flex items-center gap-md px-lg py-sm text-on-surface-variant hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label-md text-label-md">Explore</span>
+</a>
+<a class="flex items-center gap-md px-lg py-sm text-on-surface-variant hover:bg-surface-container-highest transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-label-md text-label-md">History</span>
+</a>
+<div class="px-lg mt-md">
+<button class="w-full flex items-center justify-center gap-sm border border-outline text-primary font-label-md text-label-md py-xs rounded hover:bg-surface-variant transition-colors">
+                        Add Section
+                     </button>
+</div>
+</nav>
+<div class="px-lg py-sm border-t border-outline-variant mt-auto">
+<a class="flex items-center gap-md text-on-surface-variant hover:bg-surface-container-highest transition-all py-xs rounded" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-md text-label-md">Help</span>
+</a>
+</div>
+</aside>
+<!-- Main Workspace -->
+<main class="flex-1 flex justify-center w-full md:pl-[240px] relative">
+<!-- The Page -->
+<div class="w-full max-w-[816px] bg-surface my-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] rounded-xl relative p-[96px] min-h-[1056px]">
+<h1 class="font-display-editor text-display-editor text-on-surface mb-2xl">Project Zenith Proposal</h1>
+<p class="font-body-editor text-body-editor text-on-surface-variant mb-xl">
+                    The objective of this initiative is to completely overhaul our internal communication infrastructure. By integrating advanced machine learning models, we anticipate a significant reduction in latency. However, we must carefully consider the implications on our <span class="bg-primary-container text-on-primary-container px-1 rounded cursor-pointer relative" id="highlighted-text">data privacy protocols</span> before proceeding with the full deployment phase.
+                </p>
+<p class="font-body-editor text-body-editor text-on-surface-variant mb-xl">
+                    Furthermore, the cross-functional teams will need dedicated training sessions to adapt to the new interface. We estimate a two-week onboarding period, during which productivity might see a slight dip, followed by a projected 20% increase in overall efficiency by Q3.
+                </p>
+<!-- Connecting Line (Simulated with absolute positioning for demo) -->
+<div class="comment-thread-line" style="top: 285px; left: 340px; width: 400px; height: 1px;"></div>
+</div>
+<!-- Right Sidebar: Comments -->
+<aside class="hidden xl:block w-[320px] fixed right-0 top-12 bottom-8 bg-background border-l border-outline-variant overflow-y-auto p-lg shadow-[-4px_0_12px_rgba(0,0,0,0.02)] z-30">
+<div class="flex items-center justify-between mb-xl">
+<h3 class="font-h2-ui text-h2-ui text-on-surface">Comments</h3>
+<span class="material-symbols-outlined text-outline cursor-pointer hover:text-on-surface transition-colors text-[20px]" data-icon="filter_list">filter_list</span>
+</div>
+<!-- Comment Card -->
+<div class="bg-surface border border-primary/30 rounded-xl p-md shadow-sm relative group mt-[180px] hover:border-primary transition-colors">
+<!-- Active Indicator -->
+<div class="absolute -left-[1px] top-4 bottom-4 w-[3px] bg-primary rounded-r"></div>
+<div class="flex items-start gap-md mb-sm">
+<img class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="A professional headshot of a young woman with dark hair, wearing a white blouse against a neutral grey background. Soft, even studio lighting. High resolution, modern corporate portrait style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFOattUoet7a5GcklRa5_A74ERt3pRBg-NxH2uXKozedLnGXgtyULG-lMsmaa68skBux0R_hgGzsKq04-ppx-66eilkRtvEbVM-0xNx5caRen2hSBRiFNgjCDXn11SV2IqmR8Ml3hzE3R4weNFxETi9qSMUI8QR_5Ph8msDpHggUCnLZuBR_fIHbGFKgilE_FUU8dc_mruhtph7IzaXANO4FDtN1bBsadIvdanCiV2DAdL2D7MpJDa7dcFAixgu21mQySE0ghW4pkC"/>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Sarah J.</span>
+<span class="font-label-sm text-label-sm text-outline">10:42 AM</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block mt-[2px]">Marketing Lead</span>
+</div>
+</div>
+<div class="pl-xl ml-sm">
+<p class="font-body-ui text-body-ui text-on-surface mb-md">
+                            Are we sure the current protocols aren't strict enough? Might be worth referencing the latest compliance audit here.
+                        </p>
+<div class="flex items-center gap-sm mt-md">
+<button class="bg-primary text-on-primary font-label-md text-label-md px-sm py-xs rounded hover:opacity-90 transition-opacity flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]" data-icon="check">check</span>
+                                Resolve
+                            </button>
+<button class="text-on-surface-variant font-label-md text-label-md px-sm py-xs rounded hover:bg-surface-variant transition-colors">
+                                Edit
+                            </button>
+</div>
+</div>
+<!-- Reply Input -->
+<div class="mt-md pt-md border-t border-outline-variant flex gap-sm items-center">
+<img class="w-6 h-6 rounded-full bg-surface-variant" data-alt="A small circular avatar placeholder showing a generic silhouette icon in subtle grey tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8L2aVCL3yoHwFHpsyWndO0pDfPVGk6T68KNJLU0q6BadcircZnRvIYguDRlnvkmnMdwMED79eHdXw_Z0cD_WRIFFVx46_wEpDMWI88IOqZR9m1IFjn0Tc5hEE_LUowzZlrVh5LyF-IB922JthpgIiUzhfJr1jCzEoj9K2FAnb8aIRGtamX4tzwXeg_85BqVhTwqb7T_D3gySovXMJuozWMmBSNvs3D2pwt1TmSaEvQrRpj-R9r-hZ5yG80ixnbzz3VRxkrmUNjhVl"/>
+<div class="flex-1 relative">
+<input class="w-full bg-surface-container-low border-none rounded-full py-[6px] pl-md pr-xl font-body-ui text-body-ui text-on-surface placeholder:text-outline focus:ring-1 focus:ring-primary focus:bg-surface transition-all" placeholder="Reply..." type="text"/>
+<button class="absolute right-2 top-1/2 -translate-y-1/2 text-primary hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined text-[18px]" data-icon="send">send</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Another Comment (Resolved/Inactive) -->
+<div class="bg-surface border border-outline-variant rounded-xl p-md mt-lg opacity-60 hover:opacity-100 transition-opacity">
+<div class="flex items-start gap-md mb-sm">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant font-label-md font-bold">MK</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Mark K.</span>
+<span class="font-label-sm text-label-sm text-outline">Yesterday</span>
+</div>
+</div>
+</div>
+<div class="pl-xl ml-sm">
+<p class="font-body-ui text-body-ui text-on-surface line-through">
+                            Update the timeline in paragraph 2.
+                        </p>
+</div>
+</div>
+</aside>
+</main>
+</div>
+<!-- Footer -->
+<footer class="bg-surface-container fixed bottom-0 left-0 w-full z-50 flex justify-between items-center px-lg h-8 border-t border-outline-variant">
+<span class="font-label-sm text-label-sm font-bold text-on-surface-variant">© 2024 Vela Docs</span>
+<div class="flex gap-xl items-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary cursor-default">Page Count</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary cursor-default">Word Count</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary cursor-default">English (US)</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant hover:text-primary cursor-default">Zoom 100%</span>
+</div>
+</footer>
+</body></html>

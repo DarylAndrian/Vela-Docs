@@ -1,0 +1,51 @@
+{
+  "mcpServers": {
+    "stitch": {
+      "_comment": "Google Stitch — UI design generation. Adjust command/args to your installed package.",
+      "command": "npx",
+      "args": ["-y", "@your-org/stitch-mcp"],
+      "env": {
+        "STITCH_API_KEY": "${env:STITCH_API_KEY}"
+      },
+      "disabled": false
+    },
+
+    "filesystem": {
+      "_comment": "Pre-installed. Scoped to this project for safety.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+      "disabled": false
+    },
+
+    "git": {
+      "_comment": "Pre-installed.",
+      "command": "uvx",
+      "args": ["mcp-server-git", "--repository", "."],
+      "disabled": false
+    },
+
+    "github": {
+      "_comment": "Pre-installed. Auth with a personal access token.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_TOKEN}"
+      },
+      "disabled": true
+    },
+
+    "sqlite": {
+      "_comment": "Useful for inspecting the RevisionStore DB during Phase 5 dev.",
+      "command": "uvx",
+      "args": ["mcp-server-sqlite", "--db-path", "%APPDATA%/Vela Docs/revisions.db"],
+      "disabled": true
+    },
+
+    "puppeteer": {
+      "_comment": "Headless browser for visual regression testing (Phase 6).",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+      "disabled": true
+    }
+  }
+}

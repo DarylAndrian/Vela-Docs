@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vela Docs - Focus Mode</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,700;1,8..60,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#141b2b",
+                        "secondary-container": "#8792fe",
+                        "on-secondary-container": "#17228f",
+                        "surface-container": "#e9edff",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#edf0ff",
+                        "surface-dim": "#d3daef",
+                        "secondary": "#4953bc",
+                        "on-surface-variant": "#464555",
+                        "on-secondary-fixed": "#000767",
+                        "on-primary-fixed": "#0f0069",
+                        "on-tertiary-fixed-variant": "#7b2f00",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f1f3ff",
+                        "primary-fixed": "#e2dfff",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "outline": "#777587",
+                        "on-primary-container": "#dad7ff",
+                        "on-secondary-fixed-variant": "#2f3aa3",
+                        "secondary-fixed": "#e0e0ff",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "on-tertiary-container": "#ffd2be",
+                        "surface-tint": "#4d44e3",
+                        "surface-variant": "#dce2f7",
+                        "surface-bright": "#f9f9ff",
+                        "on-tertiary-fixed": "#351000",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#e1e8fd",
+                        "background": "#f9f9ff",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "inverse-primary": "#c3c0ff",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#dce2f7",
+                        "on-surface": "#141b2b",
+                        "primary": "#3525cd",
+                        "secondary-fixed-dim": "#bdc2ff",
+                        "tertiary-fixed-dim": "#ffb695",
+                        "inverse-surface": "#293040",
+                        "tertiary": "#7e3000",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-container": "#a44100",
+                        "primary-container": "#4f46e5",
+                        "outline-variant": "#c7c4d8",
+                        "tertiary-fixed": "#ffdbcc",
+                        "error": "#ba1a1a",
+                        "surface": "#f9f9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "2xl": "32px",
+                        "page-margin": "min(10%, 96px)",
+                        "lg": "16px",
+                        "base": "4px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "gutter": "16px",
+                        "xl": "24px",
+                        "md": "12px",
+                        "4xl": "64px",
+                        "3xl": "48px"
+                    },
+                    "fontFamily": {
+                        "display-editor": [
+                            "\"Source Serif 4\""
+                        ],
+                        "body-ui": [
+                            "Inter"
+                        ],
+                        "mono": [
+                            "JetBrains Mono"
+                        ],
+                        "label-md": [
+                            "Inter"
+                        ],
+                        "h2-ui": [
+                            "Inter"
+                        ],
+                        "body-editor": [
+                            "\"Source Serif 4\""
+                        ],
+                        "h1-ui": [
+                            "Inter"
+                        ],
+                        "label-sm": [
+                            "Inter"
+                        ]
+                    },
+                    "fontSize": {
+                        "display-editor": [
+                            "48px",
+                            {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "700"
+                            }
+                        ],
+                        "body-ui": [
+                            "14px",
+                            {
+                                "lineHeight": "20px",
+                                "fontWeight": "400"
+                            }
+                        ],
+                        "mono": [
+                            "13px",
+                            {
+                                "lineHeight": "20px",
+                                "fontWeight": "400"
+                            }
+                        ],
+                        "label-md": [
+                            "12px",
+                            {
+                                "lineHeight": "16px",
+                                "fontWeight": "500"
+                            }
+                        ],
+                        "h2-ui": [
+                            "18px",
+                            {
+                                "lineHeight": "24px",
+                                "fontWeight": "600"
+                            }
+                        ],
+                        "body-editor": [
+                            "18px",
+                            {
+                                "lineHeight": "1.6",
+                                "fontWeight": "400"
+                            }
+                        ],
+                        "h1-ui": [
+                            "24px",
+                            {
+                                "lineHeight": "32px",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "600"
+                            }
+                        ],
+                        "label-sm": [
+                            "11px",
+                            {
+                                "lineHeight": "14px",
+                                "letterSpacing": "0.02em",
+                                "fontWeight": "500"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #121212; /* Darker than default dark bg for focus */
+        }
+        .page-shadow {
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+        }
+        .fade-in-out {
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+        .fade-in-out:hover, .fade-in-out.active {
+            opacity: 0.9;
+        }
+        ::selection {
+            background-color: #4f46e5;
+            color: white;
+        }
+    </style>
+</head>
+<body class="dark:bg-[#121212] min-h-screen flex justify-center py-4xl text-on-surface dark:text-inverse-on-surface font-body-editor">
+<!-- The Document Page (Focus Mode) -->
+<main class="w-full max-w-[816px] bg-[#1e1e1e] dark:bg-[#1e1e1e] rounded-lg page-shadow p-2xl md:p-[96px] min-h-[1056px] relative outline outline-1 outline-outline-variant/20 dark:outline-outline/20">
+<!-- Focus Indicator (Subtle) -->
+<div aria-hidden="true" class="absolute -left-sm top-2xl h-8 w-1 bg-primary rounded-full"></div>
+<article class="prose prose-invert max-w-none">
+<h1 class="font-display-editor text-display-editor text-on-surface dark:text-inverse-on-surface mb-lg">The Architecture of Silence</h1>
+<p class="font-body-editor text-body-editor text-on-surface-variant dark:text-surface-variant mb-md leading-relaxed">
+                In an era defined by incessant digital noise, the creation of quiet spaces is not merely an aesthetic choice, but a cognitive necessity. Interfaces designed for deep work must fundamentally reconsider the balance between utility and distraction. Every icon, border, and visual cue competes for the user's attention.
+            </p>
+<p class="font-body-editor text-body-editor text-on-surface-variant dark:text-surface-variant mb-md leading-relaxed">
+                The concept of 'Focus Mode' strips away the ancillary. It hides the navigation, the formatting ribbons, and the systemic feedback loops. What remains is a blank canvas, a pristine void that demands to be filled with intent rather than reaction. This intentional scarcity of options forces a reckoning with the primary task: writing.
+            </p>
+<h2 class="font-h2-ui text-h2-ui text-on-surface dark:text-inverse-on-surface mt-xl mb-sm">Visual Weight and Cognitive Load</h2>
+<p class="font-body-editor text-body-editor text-on-surface-variant dark:text-surface-variant mb-md leading-relaxed">
+                Consider the visual weight of typical word processors. Toolbars are heavy, demanding persistent presence at the top of the viewport. In contrast, this environment recedes. The background is a profound dark, minimizing glare and eye strain over long sessions. The typography is chosen for maximum legibility, rendering each glyph clearly without demanding conscious decoding effort.
+            </p>
+<blockquote class="border-l-2 border-primary pl-md italic font-body-editor text-body-editor text-on-surface-variant dark:text-surface-variant my-lg">
+                "Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away." - Antoine de Saint-Exupéry
+            </blockquote>
+<p class="font-body-editor text-body-editor text-on-surface-variant dark:text-surface-variant mb-md leading-relaxed">
+                As you type, notice how the cursor is the only moving element. It is a solitary beacon in a sea of stillness. Even the essential metrics—page count, word count—are relegated to a transient state, appearing only when solicited or gently hovering at the periphery of vision. They exist to serve, not to dictate.
+            </p>
+<p class="font-body-editor text-body-editor text-on-surface-variant dark:text-surface-variant leading-relaxed">
+                This architecture of silence is fragile. A single unnecessary notification can shatter it. Therefore, the system must act as a guardian of the user's attention, aggressively filtering interruptions and maintaining the sanctuary of the focused state.
+            </p>
+</article>
+</main>
+<!-- Floating Focus Toolbar (Stats) -->
+<div class="fixed bottom-xl left-1/2 -translate-x-1/2 fade-in-out active flex items-center gap-xl px-lg py-sm bg-inverse-surface/80 backdrop-blur-md rounded-full border border-outline/30 shadow-lg z-50" id="focus-toolbar">
+<!-- Exit Focus Mode Action -->
+<button class="flex items-center gap-xs text-primary-fixed-dim hover:text-primary-fixed transition-colors font-label-md text-label-md bg-transparent border-none p-0 cursor-pointer group" title="Exit Focus Mode">
+<span class="material-symbols-outlined text-[18px] group-hover:-translate-y-px transition-transform">close_fullscreen</span>
+</button>
+<!-- Divider -->
+<div class="h-4 w-px bg-outline/50"></div>
+<!-- Stats -->
+<div class="flex items-center gap-md font-mono text-mono text-surface-variant">
+<span>Page 1 of 4</span>
+<span class="text-outline-variant/50">•</span>
+<span>1,240 words</span>
+</div>
+<!-- Divider -->
+<div class="h-4 w-px bg-outline/50"></div>
+<!-- Subtle Save Status -->
+<div class="flex items-center gap-xs font-label-sm text-label-sm text-surface-variant">
+<span class="material-symbols-outlined text-[14px]">cloud_done</span>
+             Saved
+        </div>
+</div>
+<script>
+        // Simple interaction to hide the toolbar when typing and show it when idle or hovering near bottom
+        const toolbar = document.getElementById('focus-toolbar');
+        let hideTimeout;
+
+        function showToolbar() {
+            toolbar.classList.add('active');
+            resetHideTimeout();
+        }
+
+        function hideToolbar() {
+            toolbar.classList.remove('active');
+        }
+
+        function resetHideTimeout() {
+            clearTimeout(hideTimeout);
+            hideTimeout = setTimeout(hideToolbar, 3000); // Hide after 3 seconds of inactivity
+        }
+
+        // Listen for typing
+        document.addEventListener('keydown', (e) => {
+             // Don't hide if interacting with the toolbar directly (unlikely in pure focus, but good practice)
+            if(e.target.closest('#focus-toolbar')) return;
+            hideToolbar();
+        });
+
+        // Listen for mouse movement
+        document.addEventListener('mousemove', (e) => {
+            // Show if mouse moves to bottom 20% of screen
+            if (e.clientY > window.innerHeight * 0.8) {
+                showToolbar();
+            } else {
+                // If moving elsewhere, ensure the timeout is running to hide it eventually if it was shown
+                resetHideTimeout();
+            }
+        });
+
+        // Keep shown on hover
+        toolbar.addEventListener('mouseenter', () => clearTimeout(hideTimeout));
+        toolbar.addEventListener('mouseleave', resetHideTimeout);
+        
+        // Initial setup
+        resetHideTimeout();
+    </script>
+</body></html>

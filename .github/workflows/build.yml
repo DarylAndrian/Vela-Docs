@@ -1,0 +1,93 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Vela Docs — GitHub Actions CI workflow
+# ════════════════════════════════════════════════════════════════════════════
+# Builds the app on Windows runners, runs tests, and uploads the .exe.
+# Triggered on: push, pull_request, manual dispatch.
+# ════════════════════════════════════════════════════════════════════════════
+
+name: Build & Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  QT_VERSION: 6.11.1
+  BUILD_TYPE: Release
+
+jobs:
+  build-windows:
+    name: Build (${{ matrix.msvc }} on ${{ matrix.arch }})
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        msvc: ["2022"]
+        arch: ["x64"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          host: windows
+          target: desktop
+          arch: ${{ matrix.arch }}
+          modules: 'qtwebengine qtwebchannel qtpdf qtmultimedia'
+          cache: true
+
+      - name: Install NSIS
+        if: matrix.msvc == '2022'
+        uses: nsis-dev/setup-nsis@v1
+        with:
+        # default version is fine
+
+      - name: Configure
+        run: |
+          cmake -S . -B build -G "Visual Studio 17 2022" -A ${{ matrix.arch }} `
+                -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
+                -DCMAKE_PREFIX_PATH="${{ env.Qt6_Dir }}"
+
+      - name: Build
+        run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+
+      - name: Run tests
+        shell: cmd
+        run: |
+          cd build
+          ctest -C ${{ env.BUILD_TYPE }} --output-on-failure
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-docs-${{ matrix.msvc }}-${{ matrix.arch }}
+          path: build/bin/${{ env.BUILD_TYPE }}/vela-docs.exe
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Build installer
+        if: matrix.msvc == '2022'
+        run: |
+          & "C:\Program Files (x86)\NSIS\makensis.exe" installer/vela-docs.nsi
+
+      - name: Upload installer
+        if: matrix.msvc == '2022'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-docs-installer-${{ matrix.msvc }}
+          path: installer/VelaDocs-Setup-*.exe
+          if-no-files-found: warn
+          retention-days: 14

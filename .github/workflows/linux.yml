@@ -1,0 +1,39 @@
+# .github/workflows/linux.yml — v0.3.4 (PROD-01)
+name: linux-build
+
+on:
+  push:        { branches: [main, release/**] }
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Qt 6.11.1
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: 6.11.1
+          host: linux
+          target: desktop
+          modules: 'qtsvg qtwebengine'
+          cache: true
+
+      - name: Install cmark-gfm deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgl1 libxkbcommon-dev libdbus-1-dev
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DVELA_TESTS=ON
+      - name: Build
+        run: cmake --build build --parallel 4
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --parallel 4
+      - name: AppImage
+        run: tools/make-appimage.sh build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vela-docs-linux
+          path: build/output/*.AppImage
+          if-no-files-found: warn

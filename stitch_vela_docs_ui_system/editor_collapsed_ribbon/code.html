@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vela Docs - Collapsed Ribbon</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#141b2b",
+                        "secondary-container": "#8792fe",
+                        "on-secondary-container": "#17228f",
+                        "surface-container": "#e9edff",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#edf0ff",
+                        "surface-dim": "#d3daef",
+                        "secondary": "#4953bc",
+                        "on-surface-variant": "#464555",
+                        "on-secondary-fixed": "#000767",
+                        "on-primary-fixed": "#0f0069",
+                        "on-tertiary-fixed-variant": "#7b2f00",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f1f3ff",
+                        "primary-fixed": "#e2dfff",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "outline": "#777587",
+                        "on-primary-container": "#dad7ff",
+                        "on-secondary-fixed-variant": "#2f3aa3",
+                        "secondary-fixed": "#e0e0ff",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "on-tertiary-container": "#ffd2be",
+                        "surface-tint": "#4d44e3",
+                        "surface-variant": "#dce2f7",
+                        "surface-bright": "#f9f9ff",
+                        "on-tertiary-fixed": "#351000",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#e1e8fd",
+                        "background": "#f9f9ff",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "inverse-primary": "#c3c0ff",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#dce2f7",
+                        "on-surface": "#141b2b",
+                        "primary": "#3525cd",
+                        "secondary-fixed-dim": "#bdc2ff",
+                        "tertiary-fixed-dim": "#ffb695",
+                        "inverse-surface": "#293040",
+                        "tertiary": "#7e3000",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-container": "#a44100",
+                        "primary-container": "#4f46e5",
+                        "outline-variant": "#c7c4d8",
+                        "tertiary-fixed": "#ffdbcc",
+                        "error": "#ba1a1a",
+                        "surface": "#f9f9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "2xl": "32px",
+                        "page-margin": "min(10%, 96px)",
+                        "lg": "16px",
+                        "base": "4px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "gutter": "16px",
+                        "xl": "24px",
+                        "md": "12px",
+                        "4xl": "64px",
+                        "3xl": "48px"
+                    },
+                    "fontFamily": {
+                        "display-editor": ["\"Source Serif 4\""],
+                        "body-ui": ["Inter"],
+                        "mono": ["JetBrains Mono"],
+                        "label-md": ["Inter"],
+                        "h2-ui": ["Inter"],
+                        "body-editor": ["\"Source Serif 4\""],
+                        "h1-ui": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-editor": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-ui": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono": ["13px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h2-ui": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "body-editor": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "h1-ui": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono&amp;family=Source+Serif+4:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-ui min-h-screen flex flex-col overflow-hidden">
+<!-- TopAppBar (Collapsed Ribbon State) -->
+<header class="bg-background dark:bg-background border-b border-outline-variant dark:border-outline flat no shadows docked full-width top-0 flex flex-col w-full z-50">
+<!-- Main Bar -->
+<div class="flex items-center justify-between px-lg h-12 w-full">
+<div class="flex items-center gap-md">
+<span class="font-h1-ui text-h1-ui font-bold text-primary dark:text-primary-fixed cursor-pointer active:opacity-80">Vela Docs</span>
+<nav class="flex items-center gap-xs ml-xl">
+<a class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low dark:hover:bg-inverse-surface transition-colors cursor-pointer active:opacity-80 px-sm py-xs rounded" href="#">File</a>
+<a class="text-primary dark:text-primary-fixed border-b-2 border-primary hover:bg-surface-container-low dark:hover:bg-inverse-surface transition-colors cursor-pointer active:opacity-80 px-sm py-xs rounded-t" href="#">Home</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low dark:hover:bg-inverse-surface transition-colors cursor-pointer active:opacity-80 px-sm py-xs rounded" href="#">Insert</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low dark:hover:bg-inverse-surface transition-colors cursor-pointer active:opacity-80 px-sm py-xs rounded" href="#">Layout</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low dark:hover:bg-inverse-surface transition-colors cursor-pointer active:opacity-80 px-sm py-xs rounded" href="#">View</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low dark:hover:bg-inverse-surface transition-colors cursor-pointer active:opacity-80 px-sm py-xs rounded" href="#">Tools</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low dark:hover:bg-inverse-surface transition-colors cursor-pointer active:opacity-80 px-sm py-xs rounded" href="#">Help</a>
+</nav>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative hidden md:flex items-center">
+<span class="material-symbols-outlined absolute right-sm text-outline cursor-pointer">search</span>
+<input class="bg-surface-container-low border border-outline-variant rounded px-sm py-xs text-body-ui w-48 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="Search..." type="text"/>
+</div>
+<button class="bg-primary text-on-primary font-label-md px-md py-xs rounded hover:bg-primary-container transition-colors ml-sm">Share</button>
+<div class="flex items-center gap-xs ml-sm text-on-surface-variant">
+<button class="p-xs hover:bg-surface-container-low rounded-full transition-colors"><span class="material-symbols-outlined" data-icon="account_circle">account_circle</span></button>
+<button class="p-xs hover:bg-surface-container-low rounded-full transition-colors"><span class="material-symbols-outlined" data-icon="settings">settings</span></button>
+</div>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden relative">
+<!-- SideNavBar -->
+<aside class="bg-surface-container-low dark:bg-inverse-surface border-r border-outline-variant dark:border-outline flat no shadows docked h-full left-0 w-[240px] flex flex-col hidden md:flex z-40 transition-transform duration-200 ease-in-out">
+<div class="p-lg border-b border-outline-variant">
+<div class="flex items-center gap-sm mb-sm">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A small, professional avatar portrait of a modern office worker in high-key lighting, minimalist corporate style, shallow depth of field, sharp focus, 8k resolution, suitable for a UI profile icon." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfc5v-Pz2zmMCAeyOr__wGGQogKYqREq4-nKCN6h9-zHHWy2coEGtEQolrE7acaKac9HYLKdn4XFo21CAbOyilVLw2LMmwlfWOsxQejariX6bZlvVCM3nIuLZISbjdK9qwabojCiXu6rHROo8b7C9L0qX9rrVsP3L2gvIbhKa1XcrUXFV7ip5ZpeBhbOWPpx0kGJt6Dg0__HuSixMyR9ft78XI_8VxtpfSe2yaIN-Z9NM_lwW06kU2G3Hi13JUXfU--e6eQj0uh5LZ"/>
+</div>
+<div>
+<h2 class="font-h2-ui text-h2-ui text-on-surface">Navigation</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Document structure</p>
+</div>
+</div>
+<button class="w-full bg-surface text-primary border border-primary font-label-md py-xs rounded hover:bg-surface-container transition-colors mt-sm">Add Section</button>
+</div>
+<nav class="flex-1 py-sm overflow-y-auto">
+<a class="flex items-center gap-md px-lg py-sm text-on-surface-variant hover:bg-surface-variant hover:bg-surface-container-highest dark:hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="list_alt">list_alt</span>
+<span class="font-label-md text-label-md">Outline</span>
+</a>
+<a class="flex items-center gap-md px-lg py-sm text-on-surface-variant hover:bg-surface-variant hover:bg-surface-container-highest dark:hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="comment">comment</span>
+<span class="font-label-md text-label-md">Comments</span>
+</a>
+<a class="flex items-center gap-md px-lg py-sm text-on-surface-variant hover:bg-surface-variant hover:bg-surface-container-highest dark:hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label-md text-label-md">Explore</span>
+</a>
+<a class="flex items-center gap-md px-lg py-sm text-on-surface-variant hover:bg-surface-variant hover:bg-surface-container-highest dark:hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-label-md text-label-md">History</span>
+</a>
+</nav>
+<div class="p-sm border-t border-outline-variant mt-auto">
+<a class="flex items-center gap-md px-lg py-sm text-on-surface-variant hover:bg-surface-variant hover:bg-surface-container-highest dark:hover:bg-surface-container transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-md text-label-md">Help</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto bg-surface-dim flex justify-center py-xl relative">
+<!-- Floating Format Toolbar (Contextual) -->
+<div class="fixed top-16 left-1/2 transform -translate-x-1/2 bg-surface shadow-[0_2px_8px_rgba(0,0,0,0.06)] rounded-xl border border-outline-variant p-sm flex items-center gap-xs z-30 pointer-events-auto transition-opacity duration-300 opacity-0 hover:opacity-100 group">
+<button class="p-xs hover:bg-surface-container-low rounded text-on-surface-variant"><span class="material-symbols-outlined text-[18px]">format_bold</span></button>
+<button class="p-xs hover:bg-surface-container-low rounded text-on-surface-variant"><span class="material-symbols-outlined text-[18px]">format_italic</span></button>
+<button class="p-xs hover:bg-surface-container-low rounded text-on-surface-variant"><span class="material-symbols-outlined text-[18px]">format_underlined</span></button>
+<div class="w-px h-4 bg-outline-variant mx-xs"></div>
+<button class="p-xs hover:bg-surface-container-low rounded text-on-surface-variant"><span class="material-symbols-outlined text-[18px]">format_align_left</span></button>
+<button class="p-xs hover:bg-surface-container-low rounded text-on-surface-variant"><span class="material-symbols-outlined text-[18px]">format_align_center</span></button>
+<button class="p-xs hover:bg-surface-container-low rounded text-on-surface-variant"><span class="material-symbols-outlined text-[18px]">format_align_right</span></button>
+<div class="w-px h-4 bg-outline-variant mx-xs"></div>
+<button class="p-xs hover:bg-surface-container-low rounded text-on-surface-variant"><span class="material-symbols-outlined text-[18px]">more_vert</span></button>
+</div>
+<!-- The Document Page -->
+<div class="w-full max-w-[816px] bg-surface min-h-[1056px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] rounded-lg p-[96px] mb-3xl">
+<h1 class="font-display-editor text-display-editor text-on-surface mb-xl outline-none" contenteditable="true">Project Alpha: Final Specification</h1>
+<div class="font-body-editor text-body-editor text-on-surface space-y-md outline-none" contenteditable="true">
+<p class="mb-lg">
+                        The objective of this document is to outline the key deliverables for the upcoming Q3 release. As we transition to a more minimalist interface, our primary focus remains on reducing cognitive load for the end-user while maintaining powerful, underlying capabilities.
+                    </p>
+<h2 class="font-h1-ui text-h1-ui text-on-surface mt-xl mb-md">1. Interface Architecture</h2>
+<p class="mb-lg">
+                        The application shell will utilize a Fixed-Fluid Hybrid model. Sidebars remain fixed at standard widths to provide predictable navigation, while the central work area fluidly adapts. The document itself is treated as a physical object—a Level 2 elevation resting on the Level 0 app background.
+                    </p>
+<blockquote class="border-l-4 border-primary pl-md py-xs my-xl italic text-on-surface-variant bg-surface-container-low rounded-r">
+                        "Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away." - Antoine de Saint-Exupéry
+                    </blockquote>
+<h2 class="font-h1-ui text-h1-ui text-on-surface mt-xl mb-md">2. Key Components</h2>
+<ul class="list-disc pl-xl space-y-sm mb-lg">
+<li><strong>Top Navigation:</strong> Collapsible ribbon to maximize vertical space.</li>
+<li><strong>Side Panels:</strong> Contextual toolsets that appear only when relevant to the current selection.</li>
+<li><strong>Typography:</strong> Sharp, high-contrast pairs (Source Serif 4 for editing, Inter for UI).</li>
+</ul>
+<p class="mb-lg">
+                        Further details regarding the animation specifications (WebGL vs CSS transitions) will be appended in Section 3 following the design review on Thursday.
+                    </p>
+<!-- Simulating a collaborative cursor -->
+<span class="inline-block w-[2px] h-5 bg-primary animate-pulse align-middle ml-[1px]"></span>
+</div>
+</div>
+</main>
+</div>
+<!-- Footer -->
+<footer class="bg-surface-container dark:bg-inverse-surface border-t border-outline-variant dark:border-outline flat no shadows docked full-width bottom-0 h-8 fixed left-0 w-full z-50 flex justify-between items-center px-lg">
+<div class="font-label-sm text-label-sm font-bold text-on-surface-variant dark:text-surface-variant">
+            © 2024 Vela Docs
+        </div>
+<div class="flex gap-xl items-center font-label-sm text-label-sm">
+<a class="text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim cursor-default" href="#">Page Count</a>
+<a class="text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim cursor-default" href="#">Word Count</a>
+<a class="text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim cursor-default" href="#">English (US)</a>
+<a class="text-on-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim cursor-default" href="#">Zoom 100%</a>
+</div>
+</footer>
+</body></html>

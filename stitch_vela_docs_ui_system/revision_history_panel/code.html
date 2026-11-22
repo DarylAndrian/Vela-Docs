@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vela Docs - Revision History</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Source+Serif+4:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#141b2b",
+                        "secondary-container": "#8792fe",
+                        "on-secondary-container": "#17228f",
+                        "surface-container": "#e9edff",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#edf0ff",
+                        "surface-dim": "#d3daef",
+                        "secondary": "#4953bc",
+                        "on-surface-variant": "#464555",
+                        "on-secondary-fixed": "#000767",
+                        "on-primary-fixed": "#0f0069",
+                        "on-tertiary-fixed-variant": "#7b2f00",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f1f3ff",
+                        "primary-fixed": "#e2dfff",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "outline": "#777587",
+                        "on-primary-container": "#dad7ff",
+                        "on-secondary-fixed-variant": "#2f3aa3",
+                        "secondary-fixed": "#e0e0ff",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "on-tertiary-container": "#ffd2be",
+                        "surface-tint": "#4d44e3",
+                        "surface-variant": "#dce2f7",
+                        "surface-bright": "#f9f9ff",
+                        "on-tertiary-fixed": "#351000",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#e1e8fd",
+                        "background": "#f9f9ff",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "inverse-primary": "#c3c0ff",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#dce2f7",
+                        "on-surface": "#141b2b",
+                        "primary": "#3525cd",
+                        "secondary-fixed-dim": "#bdc2ff",
+                        "tertiary-fixed-dim": "#ffb695",
+                        "inverse-surface": "#293040",
+                        "tertiary": "#7e3000",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-container": "#a44100",
+                        "primary-container": "#4f46e5",
+                        "outline-variant": "#c7c4d8",
+                        "tertiary-fixed": "#ffdbcc",
+                        "error": "#ba1a1a",
+                        "surface": "#f9f9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "2xl": "32px",
+                        "page-margin": "min(10%, 96px)",
+                        "lg": "16px",
+                        "base": "4px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "gutter": "16px",
+                        "xl": "24px",
+                        "md": "12px",
+                        "4xl": "64px",
+                        "3xl": "48px"
+                    },
+                    "fontFamily": {
+                        "display-editor": ["\"Source Serif 4\""],
+                        "body-ui": ["Inter"],
+                        "mono": ["JetBrains Mono"],
+                        "label-md": ["Inter"],
+                        "h2-ui": ["Inter"],
+                        "body-editor": ["\"Source Serif 4\""],
+                        "h1-ui": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-editor": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-ui": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono": ["13px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h2-ui": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "body-editor": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "h1-ui": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-on-background text-inverse-on-surface h-screen overflow-hidden flex flex-col font-body-ui">
+<!-- TopAppBar -->
+<nav class="flex items-center justify-between px-lg h-12 w-full docked full-width top-0 bg-inverse-surface border-b border-outline-variant z-50">
+<div class="flex items-center gap-xl">
+<div class="font-h1-ui text-h1-ui font-bold text-primary-fixed">Vela Docs</div>
+<div class="hidden md:flex gap-sm">
+<button class="px-sm py-xs font-label-md text-label-md text-surface-variant hover:bg-surface-container transition-colors rounded">File</button>
+<button class="px-sm py-xs font-label-md text-label-md text-surface-variant hover:bg-surface-container transition-colors rounded">Edit</button>
+<button class="px-sm py-xs font-label-md text-label-md text-surface-variant hover:bg-surface-container transition-colors rounded">View</button>
+<button class="px-sm py-xs font-label-md text-label-md text-surface-variant hover:bg-surface-container transition-colors rounded">Insert</button>
+<button class="px-sm py-xs font-label-md text-label-md text-surface-variant hover:bg-surface-container transition-colors rounded">Format</button>
+<button class="px-sm py-xs font-label-md text-label-md text-surface-variant hover:bg-surface-container transition-colors rounded">Tools</button>
+<button class="px-sm py-xs font-label-md text-label-md text-surface-variant hover:bg-surface-container transition-colors rounded">Help</button>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="bg-primary-container text-on-primary-container px-md py-xs rounded font-label-md text-label-md hover:bg-primary transition-colors hover:text-on-primary">Share</button>
+<span class="material-symbols-outlined text-surface-variant cursor-pointer hover:text-primary-fixed-dim">account_circle</span>
+<span class="material-symbols-outlined text-surface-variant cursor-pointer hover:text-primary-fixed-dim">settings</span>
+</div>
+</nav>
+<div class="flex flex-1 overflow-hidden relative">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-12 bottom-8 z-40 flex flex-col docked h-full w-[240px] bg-inverse-surface border-r border-outline-variant">
+<div class="p-lg">
+<div class="font-label-sm text-label-sm text-surface-variant uppercase tracking-wider mb-sm">Navigation</div>
+</div>
+<nav class="flex flex-col gap-xs flex-1 px-sm">
+<a class="flex items-center gap-md px-lg py-sm text-surface-variant hover:bg-surface-container transition-all rounded" href="#">
+<span class="material-symbols-outlined text-[18px]">list_alt</span>
+<span class="font-label-md text-label-md">Outline</span>
+</a>
+<a class="flex items-center gap-md px-lg py-sm text-surface-variant hover:bg-surface-container transition-all rounded" href="#">
+<span class="material-symbols-outlined text-[18px]">comment</span>
+<span class="font-label-md text-label-md">Comments</span>
+</a>
+<a class="flex items-center gap-md px-lg py-sm text-surface-variant hover:bg-surface-container transition-all rounded" href="#">
+<span class="material-symbols-outlined text-[18px]">explore</span>
+<span class="font-label-md text-label-md">Explore</span>
+</a>
+<a class="flex items-center gap-md px-lg py-sm bg-surface-container text-primary-fixed-dim font-bold border-l-2 border-primary-fixed-dim rounded-r" href="#">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">history</span>
+<span class="font-label-md text-label-md">History</span>
+</a>
+</nav>
+<div class="p-sm mt-auto mb-12">
+<a class="flex items-center gap-md px-lg py-sm text-surface-variant hover:bg-surface-container transition-all rounded" href="#">
+<span class="material-symbols-outlined text-[18px]">help</span>
+<span class="font-label-md text-label-md">Help</span>
+</a>
+</div>
+</aside>
+<!-- Main Editor Area -->
+<main class="flex-1 ml-[240px] mr-[320px] bg-on-background flex justify-center overflow-y-auto p-2xl">
+<!-- Mock Document -->
+<div class="w-full max-w-[816px] bg-[#1e2536] rounded-xl shadow-[0_12px_32px_rgba(0,0,0,0.5)] p-[96px] min-h-[1056px] border border-outline-variant/30">
+<h1 class="font-display-editor text-display-editor text-inverse-on-surface mb-xl">Strategic Design Initiative Q3</h1>
+<p class="font-body-editor text-body-editor text-surface-dim mb-md">
+                    The primary objective of this phase is to align our visual language with the new brand guidelines, ensuring consistency across all user touchpoints.
+                </p>
+<p class="font-body-editor text-body-editor text-surface-dim mb-md">
+<span class="bg-error/20 text-error-container line-through mr-sm">We will focus on legacy systems first.</span>
+<span class="bg-primary/20 text-primary-fixed px-xs rounded">Prioritization will be given to high-traffic, customer-facing interfaces to maximize immediate impact.</span>
+</p>
+</div>
+</main>
+<!-- Revision History Panel (Right Sidebar) -->
+<aside class="fixed right-0 top-12 bottom-0 w-[320px] bg-inverse-surface border-l border-outline-variant flex flex-col z-30">
+<!-- Panel Header -->
+<div class="p-lg border-b border-outline-variant/50 flex justify-between items-center bg-[#242b3b]">
+<h2 class="font-h2-ui text-h2-ui text-inverse-on-surface">Version History</h2>
+<button class="text-surface-variant hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Timeline List -->
+<div class="flex-1 overflow-y-auto p-md space-y-xl">
+<!-- Time Group: Today -->
+<div>
+<div class="font-label-sm text-label-sm text-surface-variant uppercase tracking-wider mb-sm px-sm">Today</div>
+<!-- Current Version -->
+<div class="group relative flex flex-col gap-xs p-md rounded-lg bg-surface-container-highest/20 border border-primary-fixed/30 cursor-pointer mb-sm">
+<div class="flex justify-between items-start">
+<div>
+<div class="font-label-md text-label-md text-primary-fixed flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-primary-fixed inline-block"></span>
+                                    Current Version
+                                </div>
+<div class="font-body-ui text-body-ui text-surface-dim mt-xs text-[12px]">Oct 24, 10:45 AM</div>
+</div>
+</div>
+<div class="text-[11px] text-surface-variant flex items-center gap-xs mt-xs">
+<span class="material-symbols-outlined text-[14px]">edit</span>
+                            Sarah Jenkins
+                        </div>
+</div>
+<!-- 2 Hours Ago -->
+<div class="group relative flex flex-col gap-xs p-md rounded-lg hover:bg-surface-container/40 border border-transparent hover:border-outline-variant/30 cursor-pointer transition-all">
+<div class="flex justify-between items-start">
+<div>
+<div class="font-label-md text-label-md text-inverse-on-surface">2 hours ago</div>
+<div class="font-body-ui text-body-ui text-surface-dim mt-xs text-[12px]">Oct 24, 8:30 AM</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 bg-primary-container text-on-primary-container px-sm py-xs rounded font-label-sm text-label-sm hover:bg-primary transition-all">
+                                Restore
+                            </button>
+</div>
+<!-- Snapshot Thumbnail Placeholder -->
+<div class="w-full h-16 bg-[#1a2130] rounded border border-outline-variant/20 mt-sm flex flex-col gap-1 p-2 opacity-70 group-hover:opacity-100 transition-opacity">
+<div class="w-3/4 h-1 bg-surface-variant/30 rounded"></div>
+<div class="w-full h-1 bg-surface-variant/20 rounded"></div>
+<div class="w-5/6 h-1 bg-surface-variant/20 rounded"></div>
+</div>
+<div class="text-[11px] text-surface-variant flex items-center gap-xs mt-xs">
+<span class="material-symbols-outlined text-[14px]">edit</span>
+                            Alex Chen
+                        </div>
+</div>
+</div>
+<!-- Time Group: Yesterday -->
+<div>
+<div class="font-label-sm text-label-sm text-surface-variant uppercase tracking-wider mb-sm px-sm">Yesterday</div>
+<div class="group relative flex flex-col gap-xs p-md rounded-lg hover:bg-surface-container/40 border border-transparent hover:border-outline-variant/30 cursor-pointer transition-all">
+<div class="flex justify-between items-start">
+<div>
+<div class="font-label-md text-label-md text-inverse-on-surface">Oct 23, 4:15 PM</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 bg-primary-container text-on-primary-container px-sm py-xs rounded font-label-sm text-label-sm hover:bg-primary transition-all">
+                                Restore
+                            </button>
+</div>
+<div class="w-full h-16 bg-[#1a2130] rounded border border-outline-variant/20 mt-sm flex flex-col gap-1 p-2 opacity-70 group-hover:opacity-100 transition-opacity">
+<div class="w-1/2 h-1 bg-surface-variant/30 rounded"></div>
+<div class="w-full h-1 bg-surface-variant/20 rounded"></div>
+</div>
+<div class="text-[11px] text-surface-variant flex items-center gap-xs mt-xs">
+<span class="material-symbols-outlined text-[14px]">edit</span>
+                            Sarah Jenkins
+                        </div>
+</div>
+<div class="group relative flex flex-col gap-xs p-md rounded-lg hover:bg-surface-container/40 border border-transparent hover:border-outline-variant/30 cursor-pointer transition-all mt-xs">
+<div class="flex justify-between items-start">
+<div>
+<div class="font-label-md text-label-md text-inverse-on-surface">Oct 23, 11:00 AM</div>
+<div class="font-body-ui text-body-ui text-surface-dim mt-xs text-[12px] italic">Initial Draft</div>
+</div>
+<button class="opacity-0 group-hover:opacity-100 bg-primary-container text-on-primary-container px-sm py-xs rounded font-label-sm text-label-sm hover:bg-primary transition-all">
+                                Restore
+                            </button>
+</div>
+<div class="text-[11px] text-surface-variant flex items-center gap-xs mt-xs">
+<span class="material-symbols-outlined text-[14px]">edit</span>
+                            Alex Chen
+                        </div>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</body></html>

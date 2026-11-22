@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vela Docs - Start a new document</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,700;1,8..60,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#141b2b",
+                        "secondary-container": "#8792fe",
+                        "on-secondary-container": "#17228f",
+                        "surface-container": "#e9edff",
+                        "on-tertiary": "#ffffff",
+                        "inverse-on-surface": "#edf0ff",
+                        "surface-dim": "#d3daef",
+                        "secondary": "#4953bc",
+                        "on-surface-variant": "#464555",
+                        "on-secondary-fixed": "#000767",
+                        "on-primary-fixed": "#0f0069",
+                        "on-tertiary-fixed-variant": "#7b2f00",
+                        "error-container": "#ffdad6",
+                        "surface-container-low": "#f1f3ff",
+                        "primary-fixed": "#e2dfff",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "outline": "#777587",
+                        "on-primary-container": "#dad7ff",
+                        "on-secondary-fixed-variant": "#2f3aa3",
+                        "secondary-fixed": "#e0e0ff",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "on-tertiary-container": "#ffd2be",
+                        "surface-tint": "#4d44e3",
+                        "surface-variant": "#dce2f7",
+                        "surface-bright": "#f9f9ff",
+                        "on-tertiary-fixed": "#351000",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#e1e8fd",
+                        "background": "#f9f9ff",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "inverse-primary": "#c3c0ff",
+                        "on-error": "#ffffff",
+                        "surface-container-highest": "#dce2f7",
+                        "on-surface": "#141b2b",
+                        "primary": "#3525cd",
+                        "secondary-fixed-dim": "#bdc2ff",
+                        "tertiary-fixed-dim": "#ffb695",
+                        "inverse-surface": "#293040",
+                        "tertiary": "#7e3000",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-container": "#a44100",
+                        "primary-container": "#4f46e5",
+                        "outline-variant": "#c7c4d8",
+                        "tertiary-fixed": "#ffdbcc",
+                        "error": "#ba1a1a",
+                        "surface": "#f9f9ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "2xl": "32px",
+                        "page-margin": "min(10%, 96px)",
+                        "lg": "16px",
+                        "base": "4px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "gutter": "16px",
+                        "xl": "24px",
+                        "md": "12px",
+                        "4xl": "64px",
+                        "3xl": "48px"
+                    },
+                    "fontFamily": {
+                        "display-editor": ["\"Source Serif 4\""],
+                        "body-ui": ["Inter"],
+                        "mono": ["JetBrains Mono"],
+                        "label-md": ["Inter"],
+                        "h2-ui": ["Inter"],
+                        "body-editor": ["\"Source Serif 4\""],
+                        "h1-ui": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-editor": ["48px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-ui": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono": ["13px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "h2-ui": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "body-editor": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "h1-ui": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #F5F5F7; /* Overriding for specific request, though usually we'd use theme bg */
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .template-card-shadow {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+        .template-card-hover {
+            transition: all 0.2s ease-in-out;
+        }
+        .template-card-hover:hover {
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="font-body-ui text-body-ui text-on-surface h-screen flex flex-col overflow-hidden">
+<!-- TopAppBar -->
+<header class="bg-background text-primary font-body-ui text-body-ui border-b border-outline-variant flex items-center justify-between px-lg h-12 w-full shrink-0 relative z-10 template-card-shadow">
+<div class="flex items-center gap-xl h-full">
+<div class="font-h1-ui text-h1-ui font-bold text-primary flex items-center gap-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span>
+                Vela Docs
+            </div>
+<nav class="hidden md:flex h-full">
+<!-- File is active based on intent (File > New) -->
+<button class="px-md h-full text-primary border-b-2 border-primary font-label-md text-label-md hover:bg-surface-container-low transition-colors cursor-pointer active:opacity-80 flex items-center">
+                    File
+                </button>
+<button class="px-md h-full text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors cursor-pointer active:opacity-80 flex items-center">
+                    Edit
+                </button>
+<button class="px-md h-full text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors cursor-pointer active:opacity-80 flex items-center">
+                    View
+                </button>
+<button class="px-md h-full text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors cursor-pointer active:opacity-80 flex items-center">
+                    Insert
+                </button>
+<button class="px-md h-full text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors cursor-pointer active:opacity-80 flex items-center">
+                    Format
+                </button>
+<button class="px-md h-full text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors cursor-pointer active:opacity-80 flex items-center">
+                    Tools
+                </button>
+<button class="px-md h-full text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors cursor-pointer active:opacity-80 flex items-center">
+                    Help
+                </button>
+</nav>
+</div>
+<div class="flex items-center gap-sm">
+<div class="relative hidden sm:block w-64">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+<input class="w-full pl-xl pr-sm py-xs bg-surface-container border border-outline-variant rounded-md font-body-ui text-body-ui focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all placeholder:text-on-surface-variant" placeholder="Search templates..." type="text"/>
+</div>
+<button class="bg-primary text-on-primary font-label-md text-label-md px-lg py-xs rounded flex items-center hover:bg-primary/90 transition-colors">
+                Share
+            </button>
+<div class="flex items-center gap-xs ml-sm">
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto w-full flex justify-center py-2xl px-lg md:px-3xl">
+<div class="w-full max-w-6xl">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-2xl gap-lg">
+<div>
+<h1 class="font-display-editor text-display-editor text-on-background mb-sm">Start a new document</h1>
+<p class="font-body-ui text-body-ui text-on-surface-variant">Choose a blank page or start from a professionally designed template.</p>
+</div>
+<div class="flex gap-sm">
+<button class="px-md py-sm rounded-lg border border-outline-variant bg-surface text-on-surface hover:bg-surface-container-low font-label-md text-label-md transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                        Filter
+                    </button>
+<button class="px-md py-sm rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high font-label-md text-label-md transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">sort</span>
+                        Sort
+                    </button>
+</div>
+</div>
+<!-- Categories Tabs -->
+<div class="flex overflow-x-auto pb-sm mb-xl gap-lg border-b border-outline-variant hide-scrollbar">
+<button class="pb-sm font-label-md text-label-md text-primary border-b-2 border-primary whitespace-nowrap">All Templates</button>
+<button class="pb-sm font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap">Personal</button>
+<button class="pb-sm font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap">Business</button>
+<button class="pb-sm font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap">Education</button>
+<button class="pb-sm font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap">Legal</button>
+</div>
+<!-- Template Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-xl pb-4xl">
+<!-- Blank Template -->
+<div class="flex flex-col group cursor-pointer">
+<div class="aspect-[8.5/11] bg-surface rounded-lg border border-outline-variant template-card-shadow template-card-hover flex items-center justify-center mb-sm relative overflow-hidden">
+<span class="material-symbols-outlined text-4xl text-primary opacity-50 group-hover:scale-110 transition-transform duration-300">add</span>
+<div class="absolute inset-0 border-2 border-transparent group-hover:border-primary/20 rounded-lg transition-colors"></div>
+</div>
+<span class="font-h2-ui text-h2-ui text-on-surface text-[14px]">Blank document</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Start from scratch</span>
+</div>
+<!-- Resume Modern -->
+<div class="flex flex-col group cursor-pointer">
+<div class="aspect-[8.5/11] bg-surface rounded-lg border border-outline-variant template-card-shadow template-card-hover mb-sm overflow-hidden relative">
+<img class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" data-alt="A clean, minimalist modern resume template with subtle blue accents, professional typography, and a balanced layout on a crisp white background. The design is sleek, perfect for a high-end corporate application, shot top-down under soft, even studio lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIfPQPkKi3XS8cFkg-6IwVFNZqnZvGonexDMn3r11OdwEcv2tvhqLaLd8Lg0pA09GWm3yEIVWCJc-ozjDSctFh1uSH6P-xTKTlFcGhJJVlHByLPrBvqz3qYtt9QTw1ab5hycayuC8Lb0sFAliNj1NJZ5qNhDDL8-shaQfFwLQ1IGiKTNN-OUHppJC9xQH75kLPKarVfHCkmXm-BAh_p_yKwwqPQoO0Py3EaLDthDUR3x7kRgt-DNy5pkyiO25VJlRvNNynX0PsoKXV"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent"></div>
+</div>
+<span class="font-h2-ui text-h2-ui text-on-surface text-[14px]">Resume - Modern</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Personal</span>
+</div>
+<!-- Project Proposal -->
+<div class="flex flex-col group cursor-pointer">
+<div class="aspect-[8.5/11] bg-surface rounded-lg border border-outline-variant template-card-shadow template-card-hover mb-sm overflow-hidden relative">
+<img class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" data-alt="A professional project proposal document template featuring a bold header, structured sections with refined serif headings, and clean data tables. The aesthetic is sharp, corporate, and authoritative, rendered in a crisp light mode UI style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3fKRBZcekD0Lf6oNVig84GS8qEaIKU5BowGK1S0u-mWacFN0EaXXDatxGlQK-5f57dy1dtgnnZ5i5wYqFKQy8ouUOaiAGXYKK-K9G6-0zjclJDGnEfhI-WfeCq8cxC34fWjWwvi9G4Cnod2zM_7vC-x-SdvZpS4I60TeoNU4UdruJmgDdnzfiN-H81ciu5igKblKV__tQYIYbxPB8yJMBGT5Y6uDCr0Nb_p94ieVRahvF4hjrZ_v5mjsOKv-veCjAu73zGQhqbz6v"/>
+</div>
+<span class="font-h2-ui text-h2-ui text-on-surface text-[14px]">Project Proposal</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Business</span>
+</div>
+<!-- Formal Letter -->
+<div class="flex flex-col group cursor-pointer">
+<div class="aspect-[8.5/11] bg-surface rounded-lg border border-outline-variant template-card-shadow template-card-hover mb-sm overflow-hidden relative">
+<div class="absolute inset-0 p-lg flex flex-col gap-sm bg-surface">
+<div class="w-1/3 h-2 bg-surface-variant rounded"></div>
+<div class="w-1/4 h-2 bg-surface-variant rounded mb-md"></div>
+<div class="w-1/2 h-2 bg-surface-container-highest rounded mt-md"></div>
+<div class="w-full h-2 bg-surface-variant rounded"></div>
+<div class="w-full h-2 bg-surface-variant rounded"></div>
+<div class="w-3/4 h-2 bg-surface-variant rounded"></div>
+</div>
+</div>
+<span class="font-h2-ui text-h2-ui text-on-surface text-[14px]">Formal Letter</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Legal</span>
+</div>
+<!-- Meeting Notes -->
+<div class="flex flex-col group cursor-pointer">
+<div class="aspect-[8.5/11] bg-surface rounded-lg border border-outline-variant template-card-shadow template-card-hover mb-sm overflow-hidden relative">
+<img class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" data-alt="A structured meeting notes template with clear sections for agenda, attendees, and action items. The design features soft grey borders and subtle typographic hierarchy, embodying a clean, efficient productivity tool aesthetic in a bright, modern setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBh5jJ9o-ZvAdFGFQaO5CQ4J7dd9kOkr4IoMjeJmkW2KrjPa6aYedotgyojhLi1LolmkCUGJ2g4WuEUFXVvl-NtFzIM0TGyMDkFXhFnhDouMyObCbLE41Z3rW1GpKzyw7Ljv6Bf4SAXY51KH-xz97AhO1z5yhrcDDPV766l2T9Yzj45OIjfYhY72hNdKL6xG_NLsnez-eG-BtZMqHXlgtApa93Ds1lifirKu_HrK2AjcOOAsZ5p7DsY3PgSIj-4789VYH_B2uRcMi-s"/>
+</div>
+<span class="font-h2-ui text-h2-ui text-on-surface text-[14px]">Meeting Notes</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Business</span>
+</div>
+<!-- Syllabus -->
+<div class="flex flex-col group cursor-pointer">
+<div class="aspect-[8.5/11] bg-surface rounded-lg border border-outline-variant template-card-shadow template-card-hover mb-sm overflow-hidden relative">
+<div class="absolute inset-0 p-lg flex flex-col gap-sm bg-surface">
+<div class="w-full h-8 bg-surface-variant rounded mb-sm"></div>
+<div class="w-full h-4 bg-surface-container-highest rounded mb-md"></div>
+<div class="grid grid-cols-2 gap-sm">
+<div class="h-16 bg-surface-variant rounded"></div>
+<div class="h-16 bg-surface-variant rounded"></div>
+</div>
+</div>
+</div>
+<span class="font-h2-ui text-h2-ui text-on-surface text-[14px]">Course Syllabus</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-xs">Education</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Suppressed SideNavBar: This is a top-level transactional/picker screen, not the document editor itself. -->
+<!-- Footer -->
+<footer class="bg-surface-container text-on-surface-variant font-label-sm text-label-sm border-t border-outline-variant fixed bottom-0 left-0 w-full z-50 flex justify-between items-center px-lg h-8">
+<div class="font-label-sm text-label-sm font-bold">
+            © 2024 Vela Docs
+        </div>
+<div class="flex gap-xl items-center">
+<span class="hover:text-primary cursor-default">English (US)</span>
+</div>
+</footer>
+</body></html>

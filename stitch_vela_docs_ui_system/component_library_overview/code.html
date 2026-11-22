@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vela Docs - Component Library</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400&amp;family=Source+Serif+4:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-background": "#141b2b",
+                      "secondary-container": "#8792fe",
+                      "on-secondary-container": "#17228f",
+                      "surface-container": "#e9edff",
+                      "on-tertiary": "#ffffff",
+                      "inverse-on-surface": "#edf0ff",
+                      "surface-dim": "#d3daef",
+                      "secondary": "#4953bc",
+                      "on-surface-variant": "#464555",
+                      "on-secondary-fixed": "#000767",
+                      "on-primary-fixed": "#0f0069",
+                      "on-tertiary-fixed-variant": "#7b2f00",
+                      "error-container": "#ffdad6",
+                      "surface-container-low": "#f1f3ff",
+                      "primary-fixed": "#e2dfff",
+                      "on-primary": "#ffffff",
+                      "on-secondary": "#ffffff",
+                      "outline": "#777587",
+                      "on-primary-container": "#dad7ff",
+                      "on-secondary-fixed-variant": "#2f3aa3",
+                      "secondary-fixed": "#e0e0ff",
+                      "on-primary-fixed-variant": "#3323cc",
+                      "on-tertiary-container": "#ffd2be",
+                      "surface-tint": "#4d44e3",
+                      "surface-variant": "#dce2f7",
+                      "surface-bright": "#f9f9ff",
+                      "on-tertiary-fixed": "#351000",
+                      "on-error-container": "#93000a",
+                      "surface-container-high": "#e1e8fd",
+                      "background": "#f9f9ff",
+                      "primary-fixed-dim": "#c3c0ff",
+                      "inverse-primary": "#c3c0ff",
+                      "on-error": "#ffffff",
+                      "surface-container-highest": "#dce2f7",
+                      "on-surface": "#141b2b",
+                      "primary": "#3525cd",
+                      "secondary-fixed-dim": "#bdc2ff",
+                      "tertiary-fixed-dim": "#ffb695",
+                      "inverse-surface": "#293040",
+                      "tertiary": "#7e3000",
+                      "surface-container-lowest": "#ffffff",
+                      "tertiary-container": "#a44100",
+                      "primary-container": "#4f46e5",
+                      "outline-variant": "#c7c4d8",
+                      "tertiary-fixed": "#ffdbcc",
+                      "error": "#ba1a1a",
+                      "surface": "#f9f9ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "2xl": "32px",
+                      "page-margin": "min(10%, 96px)",
+                      "lg": "16px",
+                      "base": "4px",
+                      "xs": "4px",
+                      "sm": "8px",
+                      "gutter": "16px",
+                      "xl": "24px",
+                      "md": "12px",
+                      "4xl": "64px",
+                      "3xl": "48px"
+              },
+              "fontFamily": {
+                      "display-editor": [
+                              "\"Source Serif 4\""
+                      ],
+                      "body-ui": [
+                              "Inter"
+                      ],
+                      "mono": [
+                              "JetBrains Mono"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "h2-ui": [
+                              "Inter"
+                      ],
+                      "body-editor": [
+                              "\"Source Serif 4\""
+                      ],
+                      "h1-ui": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "display-editor": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-ui": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "mono": [
+                              "13px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "h2-ui": [
+                              "18px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-editor": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "h1-ui": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-sm": [
+                              "11px",
+                              {
+                                      "lineHeight": "14px",
+                                      "letterSpacing": "0.02em",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-ui min-h-screen">
+<!-- Header (Suppressed as this is a library page, but providing a title area) -->
+<header class="border-b border-outline-variant bg-surface px-xl py-lg sticky top-0 z-50 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+<div class="max-w-7xl mx-auto flex items-center justify-between">
+<h1 class="font-h1-ui text-h1-ui text-primary font-bold tracking-tight">Vela Docs <span class="text-outline ml-2 font-normal">Component Library</span></h1>
+<button aria-label="Toggle Dark Mode" class="p-sm rounded hover:bg-surface-variant transition-colors text-on-surface-variant" id="theme-toggle">
+<span class="material-symbols-outlined" data-icon="dark_mode">dark_mode</span>
+</button>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-xl py-2xl space-y-3xl">
+<!-- Section: Typography -->
+<section>
+<h2 class="font-h2-ui text-h2-ui text-on-surface border-b border-outline-variant pb-sm mb-lg">Typography System</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-xl">
+<!-- UI Text -->
+<div class="bg-surface rounded-xl p-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-outline-variant/30 flex flex-col gap-lg">
+<div>
+<div class="font-mono text-mono text-outline mb-xs">h1-ui</div>
+<div class="font-h1-ui text-h1-ui text-on-surface">The quick brown fox jumps over the lazy dog</div>
+</div>
+<div>
+<div class="font-mono text-mono text-outline mb-xs">h2-ui</div>
+<div class="font-h2-ui text-h2-ui text-on-surface">The quick brown fox jumps over the lazy dog</div>
+</div>
+<div>
+<div class="font-mono text-mono text-outline mb-xs">body-ui</div>
+<div class="font-body-ui text-body-ui text-on-surface">The quick brown fox jumps over the lazy dog</div>
+</div>
+<div>
+<div class="font-mono text-mono text-outline mb-xs">label-md</div>
+<div class="font-label-md text-label-md text-on-surface">The quick brown fox jumps over the lazy dog</div>
+</div>
+<div>
+<div class="font-mono text-mono text-outline mb-xs">label-sm</div>
+<div class="font-label-sm text-label-sm text-on-surface">The quick brown fox jumps over the lazy dog</div>
+</div>
+<div>
+<div class="font-mono text-mono text-outline mb-xs">mono</div>
+<div class="font-mono text-mono text-on-surface">The quick brown fox jumps over the lazy dog</div>
+</div>
+</div>
+<!-- Editor Text -->
+<div class="bg-surface rounded-xl p-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-outline-variant/30 flex flex-col gap-lg">
+<div>
+<div class="font-mono text-mono text-outline mb-xs">display-editor</div>
+<div class="font-display-editor text-display-editor text-on-surface">Document Title</div>
+</div>
+<div>
+<div class="font-mono text-mono text-outline mb-xs">body-editor</div>
+<div class="font-body-editor text-body-editor text-on-surface">This is how standard paragraph text appears within the document editor surface. It uses a serif typeface to encourage extended reading and writing sessions.</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Buttons -->
+<section>
+<h2 class="font-h2-ui text-h2-ui text-on-surface border-b border-outline-variant pb-sm mb-lg">Buttons</h2>
+<div class="bg-surface rounded-xl p-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-outline-variant/30 overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="font-label-md text-label-md text-outline border-b border-outline-variant/50">
+<th class="py-md pr-lg font-normal">Variant</th>
+<th class="py-md px-lg font-normal">Default</th>
+<th class="py-md px-lg font-normal">Hover</th>
+<th class="py-md px-lg font-normal">Active</th>
+<th class="py-md px-lg font-normal">Disabled</th>
+</tr>
+</thead>
+<tbody class="font-body-ui text-body-ui">
+<!-- Primary -->
+<tr class="border-b border-outline-variant/20">
+<td class="py-lg pr-lg font-mono text-mono text-outline">Primary</td>
+<td class="py-lg px-lg">
+<button class="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-md text-label-md font-medium transition-colors">Submit</button>
+</td>
+<td class="py-lg px-lg">
+<button class="bg-primary/90 text-on-primary px-lg py-sm rounded-lg font-label-md text-label-md font-medium">Submit</button>
+</td>
+<td class="py-lg px-lg">
+<button class="bg-primary-fixed-variant text-on-primary px-lg py-sm rounded-lg font-label-md text-label-md font-medium">Submit</button>
+</td>
+<td class="py-lg px-lg">
+<button class="bg-outline-variant/30 text-outline px-lg py-sm rounded-lg font-label-md text-label-md font-medium cursor-not-allowed">Submit</button>
+</td>
+</tr>
+<!-- Secondary -->
+<tr class="border-b border-outline-variant/20">
+<td class="py-lg pr-lg font-mono text-mono text-outline">Secondary</td>
+<td class="py-lg px-lg">
+<button class="bg-transparent border border-outline text-primary px-lg py-sm rounded-lg font-label-md text-label-md font-medium transition-colors">Cancel</button>
+</td>
+<td class="py-lg px-lg">
+<button class="bg-surface-variant/50 border border-outline text-primary px-lg py-sm rounded-lg font-label-md text-label-md font-medium">Cancel</button>
+</td>
+<td class="py-lg px-lg">
+<button class="bg-surface-variant border border-outline text-primary px-lg py-sm rounded-lg font-label-md text-label-md font-medium">Cancel</button>
+</td>
+<td class="py-lg px-lg">
+<button class="bg-transparent border border-outline-variant/50 text-outline px-lg py-sm rounded-lg font-label-md text-label-md font-medium cursor-not-allowed">Cancel</button>
+</td>
+</tr>
+<!-- Ghost -->
+<tr>
+<td class="py-lg pr-lg font-mono text-mono text-outline">Ghost</td>
+<td class="py-lg px-lg">
+<button class="bg-transparent text-on-surface-variant px-lg py-sm rounded-lg font-label-md text-label-md font-medium transition-colors">Action</button>
+</td>
+<td class="py-lg px-lg">
+<button class="bg-surface-variant text-on-surface-variant px-lg py-sm rounded-lg font-label-md text-label-md font-medium">Action</button>
+</td>
+<td class="py-lg px-lg">
+<button class="bg-surface-container-high text-on-surface-variant px-lg py-sm rounded-lg font-label-md text-label-md font-medium">Action</button>
+</td>
+<td class="py-lg px-lg">
+<button class="bg-transparent text-outline px-lg py-sm rounded-lg font-label-md text-label-md font-medium cursor-not-allowed">Action</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Section: Inputs -->
+<section>
+<h2 class="font-h2-ui text-h2-ui text-on-surface border-b border-outline-variant pb-sm mb-lg">Inputs &amp; Controls</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-xl">
+<!-- Text Fields -->
+<div class="bg-surface rounded-xl p-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-outline-variant/30 space-y-lg">
+<h3 class="font-label-md text-label-md text-outline font-medium">Text Fields</h3>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Default</label>
+<input class="w-full bg-surface border border-outline rounded-lg px-md py-sm font-body-ui text-body-ui text-on-surface placeholder:text-outline focus:outline-none transition-shadow" placeholder="Enter text..." type="text"/>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Focused</label>
+<input class="w-full bg-surface border border-primary rounded-lg px-md py-sm font-body-ui text-body-ui text-on-surface focus:outline-none shadow-[0_0_0_2px_rgba(53,37,205,0.2)]" type="text" value="Focused state"/>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Error</label>
+<input class="w-full bg-surface border border-error rounded-lg px-md py-sm font-body-ui text-body-ui text-error focus:outline-none focus:ring-2 focus:ring-error/20" type="text" value="Invalid input"/>
+<p class="font-label-sm text-label-sm text-error mt-xs">This field is required.</p>
+</div>
+</div>
+<!-- Select & Toggle -->
+<div class="bg-surface rounded-xl p-xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-outline-variant/30 space-y-lg">
+<h3 class="font-label-md text-label-md text-outline font-medium">Selection</h3>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-xs">Dropdown</label>
+<div class="relative">
+<select class="w-full appearance-none bg-surface border border-outline rounded-lg px-md py-sm font-body-ui text-body-ui text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+<option>Option 1</option>
+<option>Option 2</option>
+<option>Option 3</option>
+</select>
+<span class="material-symbols-outlined absolute right-md top-1/2 -translate-y-1/2 text-outline pointer-events-none" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-md">Toggle</label>
+<div class="flex items-center gap-sm">
+<button aria-checked="true" class="relative inline-flex h-6 w-11 items-center rounded-full bg-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2" role="switch">
+<span class="inline-block h-4 w-4 translate-x-6 transform rounded-full bg-on-primary transition-transform"></span>
+</button>
+<span class="font-body-ui text-body-ui text-on-surface">Active</span>
+</div>
+<div class="flex items-center gap-sm mt-md">
+<button aria-checked="false" class="relative inline-flex h-6 w-11 items-center rounded-full bg-outline-variant transition-colors focus:outline-none focus:ring-2 focus:ring-outline/20 focus:ring-offset-2" role="switch">
+<span class="inline-block h-4 w-4 translate-x-1 transform rounded-full bg-surface transition-transform"></span>
+</button>
+<span class="font-body-ui text-body-ui text-on-surface-variant">Inactive</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        themeToggle.addEventListener('click', () => {
+            if (html.classList.contains('light')) {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                themeToggle.innerHTML = '<span class="material-symbols-outlined" data-icon="light_mode">light_mode</span>';
+            } else {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                themeToggle.innerHTML = '<span class="material-symbols-outlined" data-icon="dark_mode">dark_mode</span>';
+            }
+        });
+    </script>
+</body></html>

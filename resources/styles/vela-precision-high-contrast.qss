@@ -1,0 +1,49 @@
+/* vela-precision-high-contrast.qss — v0.3.4 (PROD-06) */
+//
+// High-contrast variant of "Vela Precision". Loaded automatically when
+// Windows High Contrast is on. Stark black-and-white plus the indigo
+// accent at full saturation. Border widths doubled, focus rings added.
+
+QWidget {
+    background: #ffffff;
+    color: #000000;
+}
+
+VelaTabBar::pane {
+    border: 2px solid #000000;
+}
+
+QToolButton, QPushButton {
+    background: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+    padding: 6px 14px;
+}
+
+QToolButton:hover, QPushButton:hover {
+    background: #000000;
+    color: #ffffff;
+}
+
+QToolButton:focus, QPushButton:focus {
+    outline: 3px solid #3525cd;
+    outline-offset: 2px;
+}
+
+QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox {
+    background: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+    padding: 4px;
+    selection-background-color: #3525cd;
+    selection-color: #ffffff;
+}
+
+QMenuBar, QMenu {
+    background: #ffffff;
+    color: #000000;
+    border: 1px solid #000000;
+}
+
+QMenu::item:selected { background: #3525cd; color: #ffffff; }
+QStatusBar         { border-top: 2px solid #000000; }

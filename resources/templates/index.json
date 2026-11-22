@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "_comment": "v0.3.4 POLISH-02 catalogue — ordered, grouped by category. The welcome screen reads this file and lays out the cards.",
+  "version": "0.3.4",
+  "categories": [
+    "Resumes", "Letters", "Reports", "Invoices",
+    "Newsletters", "Academic", "Personal", "Flyers"
+  ],
+  "templates": [
+    { "id": "blank",             "title": "Blank",                  "category": "Personal" },
+    { "id": "modern_resume",     "title": "Modern Resume",          "category": "Resumes" },
+    { "id": "classic_resume",    "title": "Classic Resume",         "category": "Resumes" },
+    { "id": "creative_resume",   "title": "Creative Resume",        "category": "Resumes" },
+    { "id": "formal_letter",     "title": "Formal Letter",          "category": "Letters" },
+    { "id": "informal_letter",   "title": "Informal Letter",        "category": "Letters" },
+    { "id": "cover_letter",      "title": "Cover Letter",           "category": "Letters" },
+    { "id": "memo",              "title": "Memo",                   "category": "Reports" },
+    { "id": "report_toc",        "title": "Report with TOC",        "category": "Reports" },
+    { "id": "invoice",           "title": "Invoice",                "category": "Invoices" },
+    { "id": "newsletter",        "title": "Newsletter",             "category": "Newsletters" },
+    { "id": "flyer",             "title": "Flyer",                  "category": "Flyers" },
+    { "id": "brochure",          "title": "Brochure",               "category": "Flyers" },
+    { "id": "research_paper",    "title": "Research Paper",         "category": "Academic" },
+    { "id": "thesis",            "title": "Thesis",                 "category": "Academic" },
+    { "id": "lab_report",        "title": "Lab Report",             "category": "Academic" },
+    { "id": "essay",             "title": "Essay",                  "category": "Academic" },
+    { "id": "meeting_minutes",   "title": "Meeting Minutes",        "category": "Reports" },
+    { "id": "budget",            "title": "Budget Worksheet",       "category": "Personal" },
+    { "id": "todo_list",         "title": "To-Do List",             "category": "Personal" }
+  ]
+}

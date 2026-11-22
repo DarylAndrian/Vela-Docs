@@ -1,0 +1,241 @@
+/* ════════════════════════════════════════════════════════════════════════════
+ *  v0.4.2 — Document tabs sidebar + Table border fixes
+ * ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Document tabs sidebar (Google Docs style) ───────────────────── */
+.document-tabs-sidebar {
+    position: fixed;
+    top: 0;
+    left: 56px;          /* sits beside the LeftRail */
+    bottom: 0;
+    width: 280px;
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.06);
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    animation: dts-slide-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes dts-slide-in {
+    from { transform: translateX(-100%); opacity: 0; }
+    to   { transform: translateX(0);     opacity: 1; }
+}
+.dts-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.dts-header h3 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+.dts-add-btn {
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.dts-add-btn:hover { background: var(--accent-soft); color: var(--accent); }
+.dts-add-btn .ms { font-size: 18px; }
+
+.dts-back-btn {
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    color: var(--text-soft);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.dts-back-btn:hover { background: var(--accent-soft); color: var(--accent); }
+.dts-back-btn .ms { font-size: 18px; }
+
+.dts-list {
+    flex: 1;
+    overflow-y: auto;
+    list-style: none;
+    margin: 0;
+    padding: 8px 0;
+}
+.doc-tab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 16px;
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+    transition: background 80ms ease;
+}
+.doc-tab:hover { background: var(--bg-soft); }
+.doc-tab.is-active {
+    background: var(--accent-soft);
+}
+.doc-tab.is-active .doc-tab-title { color: var(--accent); font-weight: 600; }
+.doc-tab-icon {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+.doc-tab-icon .ms { font-size: 18px; }
+.doc-tab.is-active .doc-tab-icon { color: var(--accent); }
+
+.doc-tab-title {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.doc-tab-kebab,
+.doc-tab-close {
+    width: 22px;
+    height: 22px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+.doc-tab:hover .doc-tab-kebab,
+.doc-tab.is-active .doc-tab-kebab { display: inline-flex; }
+.doc-tab-kebab:hover { background: var(--accent); color: #FFFFFF; }
+.doc-tab-kebab .ms { font-size: 16px; }
+.doc-tab-close { color: var(--text-muted); }
+.doc-tab-close:hover { background: #BA1A1A; color: #FFFFFF; }
+.doc-tab-close .ms { font-size: 14px; }
+
+.doc-tab-divider {
+    list-style: none;
+    color: var(--text-muted);
+    font-size: 10px;
+    letter-spacing: -0.5px;
+    text-align: center;
+    padding: 8px 16px 4px;
+    overflow: hidden;
+    white-space: nowrap;
+    opacity: 0.6;
+}
+
+.doc-tab-group {
+    list-style: none;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 14px 16px 6px;
+    user-select: none;
+}
+
+/* Kebab menu popover */
+.doc-tab-kebab-menu {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    z-index: 1000;
+    min-width: 160px;
+    padding: 4px;
+    animation: kebab-fade-in 120ms ease-out;
+}
+@keyframes kebab-fade-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+.doc-tab-kebab-menu button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 6px 10px;
+    text-align: left;
+    cursor: pointer;
+    color: var(--text);
+    border-radius: 4px;
+    font-size: 12px;
+}
+.doc-tab-kebab-menu button:hover { background: var(--accent-soft); color: var(--accent); }
+.doc-tab-kebab-menu button.danger { color: #BA1A1A; }
+.doc-tab-kebab-menu button.danger:hover { background: #FCEAEA; color: #BA1A1A; }
+.doc-tab-kebab-menu button .ms { font-size: 16px; }
+.doc-tab-kebab-menu hr { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+/* ── Table borders fix (v0.4.2 — the table wasn't rendering at all) ── */
+/* The TipTap Table extension emits <table><tr><td> but ships no CSS,        */
+/* so the cells appear as white space. Force borders on every editor table. */
+.editor table {
+    border-collapse: collapse;
+    margin: 12px 0;
+    width: 100%;
+    table-layout: fixed;
+    overflow: hidden;
+}
+.editor table td,
+.editor table th {
+    border: 1px solid #C7C4D8;
+    padding: 6px 10px;
+    vertical-align: top;
+    min-width: 60px;
+    position: relative;
+    background: var(--bg);
+}
+.editor table th {
+    background: var(--bg-soft);
+    font-weight: 600;
+    text-align: left;
+}
+.editor table tr:first-child td { background: var(--bg-soft); }
+.editor table td > p { margin: 0; }
+.editor table p:first-child { margin-top: 0; }
+.editor table p:last-child { margin-bottom: 0; }
+.editor table .selectedCell {
+    background: var(--accent-soft) !important;
+}
+.editor table .column-resize-handle {
+    position: absolute;
+    right: -2px;
+    top: 0;
+    bottom: -2px;
+    width: 4px;
+    background: var(--accent);
+    pointer-events: none;
+}
+.editor table .tableWrapper {
+    overflow-x: auto;
+}
+.editor table .resize-cursor {
+    cursor: ew-resize;
+}
+.editor .tableWrapper {
+    margin: 12px 0;
+    overflow-x: auto;
+}
+
+/* ── Document-tabs toggle button (lives in the LeftRail) ─────────── */
+.rail-btn-document-tabs {
+    /* Identical to other rail buttons; just a hook for future tweaks. */
+}

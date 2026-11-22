@@ -1,0 +1,41 @@
+# ─────────────────────────────────────────────
+# Vela Docs — .gitattributes
+# ─────────────────────────────────────────────
+
+# Auto-detect text files and normalize line endings
+* text=auto eol=lf
+
+# C++ sources
+*.cpp text eol=lf
+*.h text eol=lf
+*.c text eol=lf
+
+# Windows builds MUST have CRLF in batch scripts
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Qt resource files
+*.qrc text eol=lf
+*.ui text eol=lf
+
+# Web/JS for the embedded editor
+*.js text eol=lf
+*.ts text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+
+# CMake
+CMakeLists.txt text eol=lf
+*.cmake text eol=lf
+
+# Markdown / docs
+*.md text eol=lf
+
+# Binary
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary
+*.ttf binary
+*.qm binary

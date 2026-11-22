@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  vela_assets.qrc — resources baked into vela-docs.exe.
+
+  Aliases are the qrc:/ paths the code actually asks for:
+    Application.cpp        :/styles/vela-precision.qss
+    MainWindow.cpp         :/editor/index.html
+    editor/index.html      :/editor/dist/editor.bundle.{js,css}
+                         :/fonts/material-symbols-outlined.woff2
+
+  Paths inside <file> are relative to THIS file (src/).
+-->
+<RCC>
+    <qresource prefix="/">
+        <file alias="styles/vela-precision.qss">../resources/styles/vela-precision.qss</file>
+        <file alias="editor/index.html">editor/index.html</file>
+        <file alias="editor/dist/editor.bundle.js">editor/dist/editor.bundle.js</file>
+        <file alias="editor/dist/editor.bundle.css">editor/dist/editor.bundle.css</file>
+        <file alias="icons/material/add.svg">../resources/icons/material/add.svg</file>
+        <file alias="icons/material/arrow_drop_down.svg">../resources/icons/material/arrow_drop_down.svg</file>
+        <file alias="icons/material/arrow_forward.svg">../resources/icons/material/arrow_forward.svg</file>
+        <file alias="icons/material/call_split.svg">../resources/icons/material/call_split.svg</file>
+        <file alias="icons/material/check_box_outline_blank.svg">../resources/icons/material/check_box_outline_blank.svg</file>
+        <file alias="icons/material/close.svg">../resources/icons/material/close.svg</file>
+        <file alias="icons/material/dark_mode.svg">../resources/icons/material/dark_mode.svg</file>
+        <file alias="icons/material/delete.svg">../resources/icons/material/delete.svg</file>
+        <file alias="icons/material/delete_sweep.svg">../resources/icons/material/delete_sweep.svg</file>
+        <file alias="icons/material/description.svg">../resources/icons/material/description.svg</file>
+        <file alias="icons/material/download.svg">../resources/icons/material/download.svg</file>
+        <file alias="icons/material/edit_document.svg">../resources/icons/material/edit_document.svg</file>
+        <file alias="icons/material/expand_less.svg">../resources/icons/material/expand_less.svg</file>
+        <file alias="icons/material/expand_more.svg">../resources/icons/material/expand_more.svg</file>
+        <file alias="icons/material/folder_open.svg">../resources/icons/material/folder_open.svg</file>
+        <file alias="icons/material/format_align_center.svg">../resources/icons/material/format_align_center.svg</file>
+        <file alias="icons/material/format_align_justify.svg">../resources/icons/material/format_align_justify.svg</file>
+        <file alias="icons/material/format_align_left.svg">../resources/icons/material/format_align_left.svg</file>
+        <file alias="icons/material/format_align_right.svg">../resources/icons/material/format_align_right.svg</file>
+        <file alias="icons/material/format_bold.svg">../resources/icons/material/format_bold.svg</file>
+        <file alias="icons/material/format_clear.svg">../resources/icons/material/format_clear.svg</file>
+        <file alias="icons/material/format_indent_decrease.svg">../resources/icons/material/format_indent_decrease.svg</file>
+        <file alias="icons/material/format_indent_increase.svg">../resources/icons/material/format_indent_increase.svg</file>
+        <file alias="icons/material/format_italic.svg">../resources/icons/material/format_italic.svg</file>
+        <file alias="icons/material/format_list_bulleted.svg">../resources/icons/material/format_list_bulleted.svg</file>
+        <file alias="icons/material/format_list_numbered.svg">../resources/icons/material/format_list_numbered.svg</file>
+        <file alias="icons/material/format_strikethrough.svg">../resources/icons/material/format_strikethrough.svg</file>
+        <file alias="icons/material/format_underlined.svg">../resources/icons/material/format_underlined.svg</file>
+        <file alias="icons/material/help.svg">../resources/icons/material/help.svg</file>
+        <file alias="icons/material/history.svg">../resources/icons/material/history.svg</file>
+        <file alias="icons/material/horizontal_rule.svg">../resources/icons/material/horizontal_rule.svg</file>
+        <file alias="icons/material/image.svg">../resources/icons/material/image.svg</file>
+        <file alias="icons/material/info.svg">../resources/icons/material/info.svg</file>
+        <file alias="icons/material/keyboard_arrow_down.svg">../resources/icons/material/keyboard_arrow_down.svg</file>
+        <file alias="icons/material/keyboard_arrow_left.svg">../resources/icons/material/keyboard_arrow_left.svg</file>
+        <file alias="icons/material/keyboard_arrow_right.svg">../resources/icons/material/keyboard_arrow_right.svg</file>
+        <file alias="icons/material/keyboard_arrow_up.svg">../resources/icons/material/keyboard_arrow_up.svg</file>
+        <file alias="icons/material/light_mode.svg">../resources/icons/material/light_mode.svg</file>
+        <file alias="icons/material/link.svg">../resources/icons/material/link.svg</file>
+        <file alias="icons/material/merge.svg">../resources/icons/material/merge.svg</file>
+        <file alias="icons/material/note_add.svg">../resources/icons/material/note_add.svg</file>
+        <file alias="icons/material/notes.svg">../resources/icons/material/notes.svg</file>
+        <file alias="icons/material/print.svg">../resources/icons/material/print.svg</file>
+        <file alias="icons/material/redo.svg">../resources/icons/material/redo.svg</file>
+        <file alias="icons/material/save.svg">../resources/icons/material/save.svg</file>
+        <file alias="icons/material/save_as.svg">../resources/icons/material/save_as.svg</file>
+        <file alias="icons/material/search.svg">../resources/icons/material/search.svg</file>
+        <file alias="icons/material/settings.svg">../resources/icons/material/settings.svg</file>
+        <file alias="icons/material/sticky_note_2.svg">../resources/icons/material/sticky_note_2.svg</file>
+        <file alias="icons/material/table_chart.svg">../resources/icons/material/table_chart.svg</file>
+        <file alias="icons/material/task_alt.svg">../resources/icons/material/task_alt.svg</file>
+        <file alias="icons/material/title.svg">../resources/icons/material/title.svg</file>
+        <file alias="icons/material/undo.svg">../resources/icons/material/undo.svg</file>
+        <file alias="icons/material/view_headline.svg">../resources/icons/material/view_headline.svg</file>
+        <file alias="icons/material/visibility.svg">../resources/icons/material/visibility.svg</file>
+        <file alias="fonts/material-symbols-outlined.woff2">../resources/fonts/material-symbols-outlined.woff2</file>
+    </qresource>
+</RCC>

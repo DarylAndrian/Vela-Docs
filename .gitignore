@@ -1,0 +1,108 @@
+# ─────────────────────────────────────────────
+# Vela Docs — .gitignore
+# ─────────────────────────────────────────────
+
+# Build directories
+build/
+build-*/
+out/
+cmake-build-*/
+*.user
+*.user.*
+*.autosave
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# Qt
+*.pro.user*
+*.qmlc
+*.jsc
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*.qmlc
+*.rcc
+*.exp
+*.lib
+*.pdb
+*.ilk
+*.obj
+*.res
+
+# IDEs
+.vscode/
+.vs/
+.idea/
+*.swp
+*.swo
+*~
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Outputs
+*.exe
+*.dll
+*.so
+*.dylib
+*.o
+*.a
+*.exe~
+*.dll~
+*.app
+*.deb
+*.rpm
+*.msi
+*.msm
+*.zip
+*.7z
+*.tar.gz
+
+# Logs and runtime
+*.log
+*.tmp
+*.bak
+.cache/
+.qmake.stash
+*.user
+.qsettings/
+
+# Vendor (we use CMake FetchContent, but allow opt-in vendoring)
+# third_party/*/
+# !third_party/.keep
+
+# Stitch / design exports (large)
+stitch-exports/
+design/*.fig
+design/*.sketch
+design/*.xd
+
+# ─────────────────────────────────────────────
+# Local tooling & stray artifacts
+# ─────────────────────────────────────────────
+
+# Project-local MCP config. The committed template is mcp.json.example —
+# this one gets filled in locally and must never carry keys into a commit.
+mcp.json
+
+# Editor/agent tool state
+.zcode/
+.mimocode/
+.vite/
+
+# Stray: an empty npm lockfile at the repo root, but no package.json.
+# The real one is editor-playground/package-lock.json and is tracked.
+/package-lock.json

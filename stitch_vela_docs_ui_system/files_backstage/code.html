@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vela Docs — Files / Backstage (v0.4.0)</title>
+    <link rel="stylesheet" href="/vela_precision/tokens.css">
+    <style>
+        /* ── Layout ─────────────────────────────────────────────────── */
+        body { margin: 0; padding: 0; background: #F7F7FA; font-family: 'Inter', sans-serif; }
+        .topbar {
+            display: flex; align-items: center; gap: 12px;
+            padding: 8px 16px; height: 48px;
+            background: #F7F7FA; border-bottom: 1px solid #E5E5EC;
+        }
+        .files-tab {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px;
+            background: #3525CD; color: #FFFFFF;
+            border: none; border-radius: 6px;
+            font-weight: 600; font-size: 13px; cursor: pointer;
+        }
+        .ribbon-tabs { display: flex; gap: 4px; }
+        .ribbon-tab {
+            background: transparent; border: none; padding: 6px 12px;
+            font-size: 13px; color: #464555; cursor: pointer; border-radius: 4px 4px 0 0;
+        }
+        .ribbon-tab.is-active { background: #FFF; color: #3525CD; box-shadow: 0 -2px 0 #3525CD inset; }
+        .spacer { flex: 1; }
+        .brand { font-weight: 600; }
+        .version-pill {
+            font-size: 11px; padding: 2px 8px;
+            background: #E1E8FD; color: #3525CD;
+            border-radius: 4px; font-weight: 500;
+        }
+        .ribbon { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; background: #F7F7FA; border-bottom: 1px solid #E5E5EC; }
+
+        /* ── Backstage ──────────────────────────────────────────────── */
+        .backstage {
+            position: fixed; inset: 0;
+            display: grid; grid-template-columns: 220px 1fr;
+            background: #F7F7FA; z-index: 1000;
+        }
+        .backstage-rail { background: #2A2A3A; padding: 16px 8px; overflow-y: auto; }
+        .backstage-item {
+            display: flex; align-items: center; gap: 10px; width: 100%;
+            padding: 8px 12px; background: transparent; border: none;
+            border-radius: 4px; color: #C8C8D8; cursor: pointer;
+            text-align: left; font-size: 13px; margin: 2px 0;
+        }
+        .backstage-item:hover { background: #3A3A4D; color: #FFFFFF; }
+        .backstage-item.is-active { background: #3525CD; color: #FFFFFF; }
+        .backstage-item .icon { font-size: 16px; width: 16px; display: inline-block; text-align: center; }
+        .backstage-divider { height: 1px; background: #3A3A4D; margin: 8px 4px; }
+
+        .backstage-content { position: relative; padding: 32px 48px; overflow-y: auto; }
+        .backstage-close {
+            position: absolute; top: 16px; right: 16px;
+            width: 32px; height: 32px; border-radius: 16px;
+            border: none; background: transparent; cursor: pointer;
+            color: #464555; font-size: 16px;
+        }
+        .backstage-close:hover { background: #E1E8FD; }
+
+        .panel-header { font-size: 26px; font-weight: 300; color: #222; margin: 0 0 8px; }
+        .panel-summary { color: #777587; margin: 0 0 16px; max-width: 540px; }
+        .section-label {
+            font-weight: 600; color: #464555;
+            margin: 16px 0 8px; font-size: 13px;
+        }
+
+        /* ── Buttons ────────────────────────────────────────────────── */
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 16px; margin: 4px 0;
+            background: #FFFFFF; color: #222;
+            border: 1px solid #D8D8E0; border-radius: 4px;
+            cursor: pointer; font-size: 13px; text-align: left;
+        }
+        .btn:hover { background: #E1E8FD; color: #3525CD; border-color: #3525CD; }
+        .btn.primary { background: #3525CD; color: #FFFFFF; border-color: #3525CD; font-weight: 600; }
+        .btn.primary:hover { background: #2A1FB0; }
+        .btn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-width: 480px; }
+
+        /* ── Recent cards ─────────────────────────────────────────── */
+        .recent-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .recent-card {
+            background: #FFF; border: 1px solid #D8D8E0; border-radius: 4px;
+            padding: 12px; width: 140px; height: 120px; cursor: pointer;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .recent-card:hover { border-color: #3525CD; }
+        .recent-thumb { font-size: 32px; color: #777587; text-align: center; padding-top: 12px; }
+        .recent-name { font-size: 12px; word-wrap: break-word; }
+
+        /* ── Print panel ───────────────────────────────────────────── */
+        .print-form { display: grid; grid-template-columns: 120px 1fr; gap: 12px; max-width: 480px; }
+        .print-form label { color: #464555; font-size: 12px; padding: 6px 0; }
+        .print-form select, .print-form input { padding: 6px 8px; border: 1px solid #D8D8E0; border-radius: 4px; }
+
+        /* ── Help panel ───────────────────────────────────────────── */
+        .help-table { width: 100%; border-collapse: collapse; margin-top: 8px; max-width: 400px; }
+        .help-table td { padding: 4px 8px; border-bottom: 1px solid #E5E5EC; font-size: 12px; }
+        .help-table td:last-child { font-family: 'JetBrains Mono', monospace; color: #464555; }
+
+        .esc-hint { color: #777587; font-size: 12px; margin-top: 24px; font-style: italic; }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <button class="files-tab is-active"><span class="icon">📄</span> Files</button>
+        <div class="ribbon-tabs">
+            <button class="ribbon-tab">Home</button>
+            <button class="ribbon-tab">Insert</button>
+            <button class="ribbon-tab">Table</button>
+        </div>
+        <div class="spacer"></div>
+        <span class="brand">Vela Docs</span>
+        <span class="version-pill">v0.4.0</span>
+    </header>
+
+    <nav class="ribbon">
+        <span style="color:#777587; font-size:12px;">↶ ↷ &nbsp;&nbsp; Fonts · Sizes · B/I/U · Align · Lists · …</span>
+    </nav>
+
+    <main class="backstage">
+        <aside class="backstage-rail">
+            <button class="backstage-item is-active"><span class="icon">💾</span> Save</button>
+            <button class="backstage-item"><span class="icon">📝</span> Save As</button>
+            <button class="backstage-item"><span class="icon">📂</span> Open</button>
+            <div class="backstage-divider"></div>
+            <button class="backstage-item"><span class="icon">🖨</span> Print</button>
+            <button class="backstage-item"><span class="icon">👁</span> Print Preview</button>
+            <div class="backstage-divider"></div>
+            <button class="backstage-item"><span class="icon">⚙</span> Options</button>
+            <button class="backstage-item"><span class="icon">❓</span> Help</button>
+            <div class="backstage-divider"></div>
+            <button class="backstage-item"><span class="icon">🕘</span> Recent</button>
+        </aside>
+        <section class="backstage-content">
+            <button class="backstage-close" title="Close (Esc)">✕</button>
+
+            <h1 class="panel-header">Save</h1>
+            <p class="panel-summary">Your document is up to date.</p>
+
+            <button class="btn primary" style="min-width: 240px;">✓ &nbsp;Save</button>
+
+            <h2 class="section-label">Save as another format</h2>
+            <div class="btn-grid">
+                <button class="btn">📄 Word Document (.docx)</button>
+                <button class="btn">📑 PDF (.pdf)</button>
+                <button class="btn">🔤 Markdown (.md)</button>
+                <button class="btn">🌐 HTML (.html)</button>
+                <button class="btn">📰 OpenDocument (.odt)</button>
+                <button class="btn">📃 Rich Text (.rtf)</button>
+                <button class="btn">📝 Plain Text (.txt)</button>
+            </div>
+
+            <p class="esc-hint">Tip: Press <kbd>Alt+F</kbd> to open this, <kbd>Esc</kbd> to close.</p>
+        </section>
+    </main>
+</body>
+</html>

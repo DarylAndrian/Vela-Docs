@@ -1,0 +1,44 @@
+# .github/workflows/windows.yml — v0.3.4 (PROD-01)
+name: windows-build
+
+on:
+  push:        { branches: [main, release/**] }
+  pull_request:
+  schedule:    [ { cron: '17 0 * * *' } ]   # daily @ 00:17 UTC
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt 6.11.1
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: 6.11.1
+          host:    windows
+          target:  msvc2022_64
+          modules: 'qtsvg qtwebengine'
+
+      - name: Configure (CMake)
+        run: cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DVELA_TESTS=ON
+
+      - name: Build
+        run: cmake --build build --config Release --parallel 4
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --parallel 4
+
+      - name: Installer
+        run: cmake --build build --target vela-docs-installer --config Release
+
+      - name: Upload artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-docs-windows
+          path: build/installer/output/*.exe
+          if-no-files-found: warn

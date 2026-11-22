@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vela Docs 0.4.2 — Editor Playground</title>
+
+    <!-- Design system fonts (local woff2 only — works fully offline; see tools/fetch-material-symbols.py) -->
+    <!-- Inter / Source Serif 4 / JetBrains Mono are also bundled in resources/fonts/ for the production Qt build -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+    <!-- ── Top bar (logo + version + theme) ──────────────────────────────── -->
+    <!-- v0.4.2 — hamburger button on the very left (Google Docs style).   -->
+    <!-- Replaces the colored Files tab from v0.4.1. Opens the Files/       -->
+    <!-- backstage overlay (alt+F also works).                                -->
+    <header class="topbar">
+        <button class="files-tab" id="btn-files" title="Files (Alt+F)">
+            <span class="ms">description</span> Files
+        </button>
+        <span class="brand">Vela Docs 0.4.2</span>
+        <span class="phase-badge">Playground</span>
+        <div class="topbar-spacer"></div>
+        <button class="topbar-btn" id="btn-document-tabs" title="Document tabs"><span class="ms">tab</span></button>
+        <button id="toggle-theme" class="topbar-btn" title="Toggle dark mode">
+            <span class="ms">light_mode</span>
+        </button>
+    </header>
+
+    <!-- ── Ribbon ──────────────────────────────────────────────────── -->
+    <nav class="ribbon">
+        <div class="ribbon-tabs">
+            <button class="ribbon-tab is-active" data-tab="home">Home</button>
+            <button class="ribbon-tab" data-tab="insert">Insert</button>
+            <button class="ribbon-tab" data-tab="table">Table</button>
+            <button class="ribbon-tab" data-tab="format">Format</button>
+        </div>
+        <div class="ribbon-spacer"></div>
+        <div class="ribbon-undo">
+            <button data-cmd="undo" class="tool" title="Undo (Ctrl+Z)">
+                <span class="ms">undo</span>
+            </button>
+            <button data-cmd="redo" class="tool" title="Redo (Ctrl+Shift+Z)">
+                <span class="ms">redo</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ── Tab panels ──────────────────────────────────────────────── -->
+    <div class="toolbar">
+        <!-- ── HOME TAB ─────────────────────────────────────────── -->
+        <div class="tab-panel is-active" data-panel="home">
+            <select id="font-family" class="toolbar-select" title="Font family">
+                <option>Source Serif 4</option>
+                <option>Inter</option>
+                <option>Georgia</option>
+                <option>Times New Roman</option>
+                <option>Calibri</option>
+                <option>Arial</option>
+                <option>JetBrains Mono</option>
+            </select>
+            <select id="font-size" class="toolbar-select narrow" title="Size">
+                <option>9</option><option>10</option><option>11</option>
+                <option selected>12</option>
+                <option>14</option><option>16</option>
+                <option>18</option>
+                <option>24</option><option>36</option>
+            </select>
+
+            <span class="divider"></span>
+
+            <button data-cmd="bold"        class="tool" title="Bold (Ctrl+B)"><b>B</b></button>
+            <button data-cmd="italic"      class="tool" title="Italic (Ctrl+I)"><i>I</i></button>
+            <button data-cmd="underline"   class="tool" title="Underline (Ctrl+U)"><u>U</u></button>
+            <button data-cmd="strike"      class="tool" title="Strikethrough (Ctrl+Shift+S)"><s>S</s></button>
+
+            <span class="divider"></span>
+
+            <button data-cmd="textColor"   class="tool has-swatch" id="btn-text-color" title="Text color">
+                <span class="swatch-letter">A</span>
+                <span class="swatch-bar" style="background: var(--text)"></span>
+            </button>
+            <div class="color-picker" data-target="textColor" hidden></div>
+
+            <button data-cmd="highlight"   class="tool has-swatch" id="btn-highlight" title="Highlight color">
+                <span class="swatch-letter" style="background: #fff3a0">H</span>
+                <span class="swatch-bar" style="background: #fff3a0"></span>
+            </button>
+            <div class="color-picker" data-target="highlight" hidden></div>
+
+            <span class="divider"></span>
+
+            <!-- ── Style dropdown (replaces flat H1–H4 buttons) ─────────── -->
+            <div class="style-dropdown" id="style-dropdown">
+                <button class="style-dropdown-trigger tool" id="style-trigger" title="Paragraph style">
+                    <span class="ms">notes</span>
+                    <span class="style-name">Normal</span>
+                    <span class="ms">expand_more</span>
+                </button>
+                <div class="style-dropdown-menu" id="style-menu" hidden></div>
+            </div>
+
+            <span class="divider"></span>
+
+            <button data-cmd="align"    data-arg="left"    class="tool" title="Align left">
+                <span class="ms">format_align_left</span>
+            </button>
+            <button data-cmd="align"    data-arg="center"  class="tool" title="Align center">
+                <span class="ms">format_align_center</span>
+            </button>
+            <button data-cmd="align"    data-arg="right"   class="tool" title="Align right">
+                <span class="ms">format_align_right</span>
+            </button>
+            <button data-cmd="align"    data-arg="justify" class="tool" title="Justify">
+                <span class="ms">format_align_justify</span>
+            </button>
+
+            <span class="divider"></span>
+
+            <button data-cmd="bulletList"   class="tool" title="Bullet list (Ctrl+Shift+L)">
+                <span class="ms">format_list_bulleted</span>
+            </button>
+            <button data-cmd="orderedList"  class="tool" title="Numbered list (Ctrl+Shift+O)">
+                <span class="ms">format_list_numbered</span>
+            </button>
+            <button data-cmd="taskList"     class="tool" title="Task list (Ctrl+Shift+7)">
+                <span class="ms">check_box_outline_blank</span>
+            </button>
+
+            <span class="divider"></span>
+
+            <button data-cmd="indent" class="tool" title="Indent (Ctrl+])">
+                <span class="ms">format_indent_increase</span>
+            </button>
+            <button data-cmd="outdent" class="tool" title="Outdent (Ctrl+[)">
+                <span class="ms">format_indent_decrease</span>
+            </button>
+
+            <span class="divider"></span>
+
+            <button data-cmd="clearFormatting" class="tool" title="Clear formatting">
+                <span class="ms">format_clear</span>
+            </button>
+        </div>
+
+        <!-- ── INSERT TAB ───────────────────────────────────────── -->
+        <div class="tab-panel" data-panel="insert" hidden>
+            <!-- v0.4.2 — Google Docs-style table grid picker.
+                 Hover over the button to reveal a 5×5 grid; the highlighted
+                 region shows rows × columns. Click to insert a table at that
+                 size. Default size is 3×3 (selected on first hover). -->
+            <div class="table-picker" id="table-picker">
+                <button class="tool-pill" id="btn-insert-table" title="Insert table (Ctrl+Shift+K)">
+                    <span class="ms">table_chart</span> Table
+                </button>
+                <div class="table-grid-popover" id="table-grid-popover" hidden>
+                    <div class="table-grid" id="table-grid"></div>
+                    <div class="table-grid-label" id="table-grid-label">3 × 3</div>
+                </div>
+            </div>
+
+            <button data-cmd="openInsertImage" class="tool-pill" title="Insert image (Ctrl+Alt+I)">
+                <span class="ms">image</span> Image
+            </button>
+            <button data-cmd="insertLink" class="tool-pill" title="Insert link (Ctrl+K)">
+                <span class="ms">link</span> Link
+            </button>
+
+            <span class="divider"></span>
+
+            <button data-cmd="pageBreak"   class="tool-pill" title="Page break">
+                <span class="ms">note_add</span> Page break
+            </button>
+            <button data-cmd="hr"          class="tool-pill" title="Horizontal rule">
+                <span class="ms">horizontal_rule</span> Horizontal rule
+            </button>
+            <button data-cmd="footnote"    class="tool-pill" title="Footnote">
+                <span class="ms">sticky_note_2</span> Footnote
+            </button>
+
+            <span class="divider"></span>
+
+            <div class="special-chars">
+                <span class="special-label">Special:</span>
+                <button data-cmd="insertChar" data-arg="©" class="tool-narrow" title="Copyright">©</button>
+                <button data-cmd="insertChar" data-arg="®" class="tool-narrow" title="Registered">®</button>
+                <button data-cmd="insertChar" data-arg="€" class="tool-narrow" title="Euro">€</button>
+                <button data-cmd="insertChar" data-arg="£" class="tool-narrow" title="Pound">£</button>
+                <button data-cmd="insertChar" data-arg="¥" class="tool-narrow" title="Yen">¥</button>
+                <button data-cmd="insertChar" data-arg="§" class="tool-narrow" title="Section">§</button>
+                <button data-cmd="insertChar" data-arg="¶" class="tool-narrow" title="Pilcrow">¶</button>
+                <button data-cmd="insertChar" data-arg="°" class="tool-narrow" title="Degree">°</button>
+            </div>
+        </div>
+
+        <!-- ── TABLE TAB (v0.4.2 — all buttons have icons, no popups) ── -->
+        <div class="tab-panel" data-panel="table" hidden id="table-tab">
+            <span class="table-help">Click in a table to enable actions.</span>
+
+            <button data-cmd="addRowBefore"    class="tool-pill" disabled>
+                <span class="ms">keyboard_arrow_up</span> Insert row above
+            </button>
+            <button data-cmd="addRowAfter"     class="tool-pill" disabled>
+                <span class="ms">keyboard_arrow_down</span> Insert row below
+            </button>
+            <button data-cmd="deleteRow"       class="tool-pill" disabled>
+                <span class="ms">delete</span> Delete row
+            </button>
+
+            <span class="divider"></span>
+
+            <button data-cmd="addColBefore"    class="tool-pill" disabled>
+                <span class="ms">keyboard_arrow_left</span> Insert column left
+            </button>
+            <button data-cmd="addColAfter"     class="tool-pill" disabled>
+                <span class="ms">keyboard_arrow_right</span> Insert column right
+            </button>
+            <button data-cmd="deleteCol"       class="tool-pill" disabled>
+                <span class="ms">delete</span> Delete column
+            </button>
+
+            <span class="divider"></span>
+
+            <button data-cmd="mergeCells"       class="tool-pill" disabled>
+                <span class="ms">merge</span> Merge cells
+            </button>
+            <button data-cmd="splitCell"        class="tool-pill" disabled>
+                <span class="ms">call_split</span> Split cell
+            </button>
+            <button data-cmd="toggleHeader"     class="tool-pill" disabled>
+                <span class="ms">view_headline</span> Toggle header row
+            </button>
+            <button data-cmd="deleteTable"      class="tool-pill danger" disabled>
+                <span class="ms">delete_sweep</span> Delete table
+            </button>
+
+            <span class="divider"></span>
+
+            <!-- v0.4.2 — opens the inline tabbed Table Settings panel       -->
+            <!-- (no popup). Replaces the TablePropertiesDialog modal.        -->
+            <button data-cmd="openTableSettings" class="tool-pill" id="btn-table-settings" disabled>
+                <span class="ms">tune</span> Table settings…
+            </button>
+        </div>
+
+        <!-- ── FORMAT TAB (v0.5.0 — page layout & document format) ──── -->
+        <div class="tab-panel" data-panel="format" hidden id="format-tab">
+            <!-- Page Setup -->
+            <div class="ribbon-group">
+                <button data-cmd="setOrientation" data-arg="portrait" class="tool-pill is-active" title="Portrait orientation">
+                    <span class="ms">stay_portrait</span> Portrait
+                </button>
+                <button data-cmd="setOrientation" data-arg="landscape" class="tool-pill" title="Landscape orientation">
+                    <span class="ms">stay_landscape</span> Landscape
+                </button>
+            </div>
+            <div class="ribbon-group">
+                <select id="page-size-select" class="toolbar-select" title="Paper size">
+                    <option value="A4" selected>A4</option>
+                    <option value="Letter">Letter</option>
+                    <option value="Legal">Legal</option>
+                    <option value="Tabloid">Tabloid</option>
+                </select>
+            </div>
+            <div class="ribbon-group">
+                <button data-cmd="openPageSetup" class="tool-pill" title="Page setup (margins, etc.)">
+                    <span class="ms">format_shapes</span> Margins…
+                </button>
+            </div>
+
+            <span class="divider"></span>
+
+            <!-- Layout mode -->
+            <div class="ribbon-group">
+                <button data-cmd="setPageMode" data-arg="pageless" class="tool-pill is-active" title="Pageless (continuous scroll)">
+                    <span class="ms">waves</span> Pageless
+                </button>
+                <button data-cmd="setPageMode" data-arg="paging" class="tool-pill" title="Paging (A4 sheets, like Google Docs)">
+                    <span class="ms">description</span> Paging
+                </button>
+            </div>
+
+            <span class="divider"></span>
+
+            <!-- Header & Footer -->
+            <div class="ribbon-group">
+                <button data-cmd="editHeader" class="tool-pill" title="Edit header text">
+                    <span class="ms">vertical_align_top</span> Header
+                </button>
+                <button data-cmd="editFooter" class="tool-pill" title="Edit footer text">
+                    <span class="ms">vertical_align_bottom</span> Footer
+                </button>
+                <button data-cmd="insertPageNumber" class="tool-pill" title="Insert page number in footer">
+                    <span class="ms">tag</span> Page #
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Page canvas ──────────────────────────────────────────── -->
+    <main class="canvas" id="canvas">
+        <div class="page" id="page">
+            <!-- ── Ruler (NEW v0.4.0) ──────────────────────────────── -->
+            <div class="ruler" id="ruler"></div>
+            <div class="editor" id="editor"></div>
+            <div class="cursor-marker" aria-hidden="true"></div>
+            <!-- ── Page footer (v0.4.1 — document-bottom indicator) ─── -->
+            <div class="page-footer" id="page-footer">
+                <span id="page-footer-cell-coords" hidden></span>
+                <span id="page-footer-stats">Page 1 of 1</span>
+                <span class="dot">·</span>
+                <span id="page-footer-words">0 words</span>
+                <span class="dot">·</span>
+                <span id="page-footer-version" class="version">v0.4.2</span>
+            </div>
+        </div>
+
+        <!-- ── Status bar (slim v0.4.1 — text only) ────────────── -->
+        <div class="status-bar" id="status">
+            <!-- Populated by main.js — see mountVersionChip(). -->
+        </div>
+    </main>
+
+    <!-- ── Table settings panel (v0.4.2 — tabbed, inline, not a modal) ──── -->
+    <!-- Slides in from the right when the user clicks "Table settings…" in  -->
+    <!-- the Table ribbon tab. Tabs: Borders / Cell / Table / Row & Column.  -->
+    <aside class="table-settings-panel" id="table-settings-panel" hidden aria-label="Table settings">
+        <header class="tsp-header">
+            <h3><span class="ms">tune</span> Table settings</h3>
+            <button class="tsp-close" id="tsp-close" title="Close (Esc)">
+                <span class="ms">close</span>
+            </button>
+        </header>
+        <nav class="tsp-tabs" role="tablist">
+            <button class="tsp-tab is-active" data-tab="borders" role="tab" aria-selected="true">
+                <span class="ms">border_all</span><span>Borders</span>
+            </button>
+            <button class="tsp-tab" data-tab="cell" role="tab" aria-selected="false">
+                <span class="ms">crop_square</span><span>Cell</span>
+            </button>
+            <button class="tsp-tab" data-tab="table" role="tab" aria-selected="false">
+                <span class="ms">table_chart</span><span>Table</span>
+            </button>
+            <button class="tsp-tab" data-tab="rowcol" role="tab" aria-selected="false">
+                <span class="ms">view_module</span><span>Row & column</span>
+            </button>
+        </nav>
+        <div class="tsp-body">
+            <!-- ── BORDERS TAB ──────────────────────────────────────── -->
+            <section class="tsp-pane is-active" data-pane="borders">
+                <div class="tsp-section">
+                    <div class="tsp-section-title">Style</div>
+                    <div class="tsp-border-presets">
+                        <button class="tsp-preset is-active" data-preset="all" title="All borders">
+                            <span class="ms">border_all</span><span>All</span>
+                        </button>
+                        <button class="tsp-preset" data-preset="outside" title="Outside borders">
+                            <span class="ms">border_outer</span><span>Outside</span>
+                        </button>
+                        <button class="tsp-preset" data-preset="inside" title="Inside borders">
+                            <span class="ms">border_inner</span><span>Inside</span>
+                        </button>
+                        <button class="tsp-preset" data-preset="none" title="No borders">
+                            <span class="ms">border_clear</span><span>None</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="tsp-section">
+                    <label class="tsp-field">
+                        <span class="tsp-label"><span class="ms">line_weight</span> Border style</span>
+                        <select id="tsp-border-style">
+                            <option value="single">Single</option>
+                            <option value="double">Double</option>
+                            <option value="dotted">Dotted</option>
+                            <option value="dashed">Dashed</option>
+                        </select>
+                    </label>
+                    <label class="tsp-field">
+                        <span class="tsp-label"><span class="ms">format_color_fill</span> Color</span>
+                        <input type="color" id="tsp-border-color" value="#888888"/>
+                    </label>
+                    <label class="tsp-field">
+                        <span class="tsp-label"><span class="ms">open_in_full</span> Width</span>
+                        <input type="number" id="tsp-border-width" value="1" min="0" max="8" step="1"/> px
+                    </label>
+                </div>
+            </section>
+
+            <!-- ── CELL TAB ──────────────────────────────────────────── -->
+            <section class="tsp-pane" data-pane="cell" hidden>
+                <div class="tsp-section">
+                    <label class="tsp-field">
+                        <span class="tsp-label"><span class="ms">aspect_ratio</span> Padding</span>
+                        <input type="number" id="tsp-cell-padding" value="6" min="0" max="60"/> px
+                    </label>
+                    <label class="tsp-field">
+                        <span class="tsp-label"><span class="ms">space_bar</span> Spacing</span>
+                        <input type="number" id="tsp-cell-spacing" value="0" min="0" max="30"/> px
+                    </label>
+                </div>
+                <div class="tsp-section">
+                    <div class="tsp-section-title">Cell shading</div>
+                    <label class="tsp-field">
+                        <span class="tsp-label"><span class="ms">format_color_fill</span> Shading color</span>
+                        <input type="color" id="tsp-cell-shading" value="#ffffff"/>
+                    </label>
+                </div>
+                <div class="tsp-section">
+                    <div class="tsp-section-title">Vertical alignment</div>
+                    <div class="tsp-icon-row">
+                        <button class="tsp-icon-btn" data-valign="top"    title="Align top">
+                            <span class="ms">vertical_align_top</span>
+                        </button>
+                        <button class="tsp-icon-btn is-active" data-valign="middle" title="Align middle">
+                            <span class="ms">vertical_align_center</span>
+                        </button>
+                        <button class="tsp-icon-btn" data-valign="bottom" title="Align bottom">
+                            <span class="ms">vertical_align_bottom</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── TABLE TAB ─────────────────────────────────────────── -->
+            <section class="tsp-pane" data-pane="table" hidden>
+                <div class="tsp-section">
+                    <label class="tsp-field">
+                        <span class="tsp-label"><span class="ms">straighten</span> Width</span>
+                        <input type="number" id="tsp-table-width" value="100" min="10" max="200"/> %
+                    </label>
+                    <label class="tsp-field">
+                        <span class="tsp-label"><span class="ms">format_align_center</span> Alignment</span>
+                        <select id="tsp-table-align">
+                            <option value="left">Left</option>
+                            <option value="center">Center</option>
+                            <option value="right">Right</option>
+                        </select>
+                    </label>
+                    <label class="tsp-field">
+                        <span class="tsp-label"><span class="ms">auto_awesome_motion</span> Auto-fit</span>
+                        <select id="tsp-table-autofit">
+                            <option value="window">Fit window</option>
+                            <option value="contents">Fit contents</option>
+                            <option value="fixed">Fixed</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="tsp-section">
+                    <div class="tsp-section-title">Header row</div>
+                    <label class="tsp-field tsp-row">
+                        <input type="checkbox" id="tsp-table-header" checked/>
+                        <span class="ms">view_headline</span>
+                        <span>Repeat header row on every page</span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- ── ROW & COLUMN TAB ──────────────────────────────────── -->
+            <section class="tsp-pane" data-pane="rowcol" hidden>
+                <div class="tsp-section">
+                    <div class="tsp-section-title">Row height</div>
+                    <label class="tsp-field">
+                        <span class="tsp-label"><span class="ms">height</span> Height</span>
+                        <input type="number" id="tsp-row-height" value="20" min="10" max="400"/> px
+                    </label>
+                </div>
+                <div class="tsp-section">
+                    <div class="tsp-section-title">Column width</div>
+                    <label class="tsp-field">
+                        <span class="tsp-label"><span class="ms">width</span> Width</span>
+                        <input type="number" id="tsp-col-width" value="120" min="20" max="800"/> px
+                    </label>
+                </div>
+                <div class="tsp-section">
+                    <div class="tsp-section-title">Quick actions</div>
+                    <div class="tsp-icon-row">
+                        <button class="tsp-icon-btn" data-action="distributeRows" title="Distribute rows evenly">
+                            <span class="ms">vertical_distribute</span>
+                        </button>
+                        <button class="tsp-icon-btn" data-action="distributeCols" title="Distribute columns evenly">
+                            <span class="ms">horizontal_distribute</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <footer class="tsp-footer">
+            <button class="tsp-btn" data-action="reset">Reset</button>
+            <button class="tsp-btn primary" data-action="apply">Apply</button>
+        </footer>
+    </aside>
+
+
+    <!-- ── Document tabs sidebar (v0.4.2 — Google Docs style) ──────────── -->
+    <aside class="document-tabs-sidebar" id="document-tabs-sidebar" hidden aria-label="Document tabs">
+        <header class="dts-header">
+            <button class="dts-back-btn" id="dts-close" title="Hide document tabs">
+                <span class="ms">arrow_back</span>
+            </button>
+            <h3>Document tabs</h3>
+            <button class="dts-add-btn" id="dts-add" title="New document">
+                <span class="ms">add</span>
+            </button>
+        </header>
+        <ul class="dts-list" id="dts-list"></ul>
+    </aside>
+
+    <!-- ── Backstage overlay (Microsoft Word-style Files tab) ──────────── -->
+    <div class="backstage" id="backstage" hidden>
+        <div class="backstage-rail">
+            <button class="backstage-item is-active" data-panel="save">
+                <span class="ms">save</span> Save
+            </button>
+            <button class="backstage-item" data-panel="saveAs">
+                <span class="ms">save_as</span> Save As
+            </button>
+            <button class="backstage-item" data-panel="open">
+                <span class="ms">folder_open</span> Open
+            </button>
+            <div class="backstage-divider"></div>
+            <button class="backstage-item" data-panel="print">
+                <span class="ms">print</span> Print
+            </button>
+            <button class="backstage-item" data-panel="printPreview">
+                <span class="ms">visibility</span> Print Preview
+            </button>
+            <div class="backstage-divider"></div>
+            <button class="backstage-item" data-panel="options">
+                <span class="ms">settings</span> Options
+            </button>
+            <button class="backstage-item" data-panel="help">
+                <span class="ms">help</span> Help
+            </button>
+            <div class="backstage-divider"></div>
+            <button class="backstage-item" data-panel="recent">
+                <span class="ms">history</span> Recent
+            </button>
+        </div>
+        <div class="backstage-content" id="backstage-content">
+            <button class="backstage-close" id="backstage-close" title="Close (Esc)">
+                <span class="ms">close</span>
+            </button>
+            <!-- Panels are mounted dynamically -->
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>

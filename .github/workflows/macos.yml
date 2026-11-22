@@ -1,0 +1,34 @@
+# .github/workflows/macos.yml — v0.3.4 (PROD-01)
+name: macos-build
+
+on:
+  push:        { branches: [main, release/**] }
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Qt 6.11.1
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: 6.11.1
+          host: mac
+          target: clang_64
+          modules: 'qtsvg qtwebengine'
+      - name: Configure
+        run: cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DVELA_TESTS=ON
+      - name: Build
+        run: cmake --build build --config Release --parallel 4
+      - name: Test
+        run: ctest --test-dir build --output-on-failure --parallel 4
+      - name: Package (DMG)
+        run: |
+          hdiutil create build/vela-docs-mac.dmg -ov -format UDRO -srcfolder build/bin/Vela\ Docs.app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vela-docs-macos
+          path: build/*.dmg
+          if-no-files-found: warn
