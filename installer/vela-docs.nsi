@@ -1,5 +1,5 @@
 ; ════════════════════════════════════════════════════════════════════════════
-; Vela Docs — NSIS Installer Script — v0.5.0
+; Vela Docs — NSIS Installer Script
 ; ════════════════════════════════════════════════════════════════════════════
 ; Run with:
 ;   makensis vela-docs.nsi
@@ -19,7 +19,9 @@ SetCompressor /SOLID lzma
 !define DESCRIPTION  "A modern word processor combining MS Word + Google Docs"
 !define VERSIONMAJOR 0
 !define VERSIONMINOR 5
-!define VERSIONBUILD 0
+!define VERSIONBUILD 1
+!define VERSION "${VERSIONMAJOR}.${VERSIONMINOR}.${VERSIONBUILD}"
+!define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 !define HELPURL      "https://github.com/your-org/vela-docs"
 !define UPDATEURL    "https://github.com/your-org/vela-docs/releases"
 !define ABOUTURL     "https://github.com/your-org/vela-docs"
@@ -38,17 +40,31 @@ SetCompressor /SOLID lzma
 ; Installer UI
 ; ──────────────────────────────────────────────────────────────────────────
 
-Name "${APPNAME} ${VERSIONMAJOR}.${VERSIONMINOR}.${VERSIONBUILD}"
-OutFile "VelaDocs-Setup-${VERSIONMAJOR}.${VERSIONMINOR}.${VERSIONBUILD}.exe"
+Name "${APPNAME} ${VERSION}"
+!ifdef VELA_PER_USER
+!define INSTALL_REGISTRY HKCU
+OutFile "VelaDocs-Setup-${VERSION}-User.exe"
+InstallDir "$LOCALAPPDATA\Programs\Vela Docs"
+RequestExecutionLevel user
+!else
+!define INSTALL_REGISTRY HKLM
+OutFile "VelaDocs-Setup-${VERSION}.exe"
 InstallDir "$PROGRAMFILES64\Vela Docs"
-InstallDirRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "UninstallString"
 RequestExecutionLevel admin
+!endif
+InstallDirRegKey ${INSTALL_REGISTRY} "${UNINSTALL_KEY}" "InstallLocation"
+VIProductVersion "${VERSION}.0"
+VIAddVersionKey "ProductName" "${APPNAME}"
+VIAddVersionKey "CompanyName" "${COMPANYNAME}"
+VIAddVersionKey "FileDescription" "${APPNAME} Setup"
+VIAddVersionKey "FileVersion" "${VERSION}"
+VIAddVersionKey "ProductVersion" "${VERSION}"
 ShowInstDetails show
 ShowUninstDetails show
 
 !define MUI_ABORTWARNING
-!define MUI_ICON   "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
-!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
+!define MUI_ICON   "..\resources\icons\vela-docs.ico"
+!define MUI_UNICON "..\resources\icons\vela-docs.ico"
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE  "license.rtf"
@@ -72,10 +88,8 @@ Section "Vela Docs (required)" SecVelaDocs
 
     SetOutPath "$INSTDIR"
 
-    ; The Qt-deployed folder (output of windeployqt) lives at:
-    ;   build/bin/Release/vela-docs/
-    ; Copy everything under it into the install dir.
-    File /r "..\build\bin\Release\vela-docs\*.*"
+    ; windeployqt puts the runtime next to vela-docs.exe.
+    File /r /x "*.pdb" /x "vela-tests-unit.exe" "..\build\bin\Release\*.*"
 
     ; Create uninstaller
     WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -87,35 +101,39 @@ Section "Vela Docs (required)" SecVelaDocs
     CreateShortcut  "$DESKTOP\Vela Docs.lnk"                         "$INSTDIR\vela-docs.exe"
 
     ; Registry keys for Add/Remove Programs
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" \
+    WriteRegStr ${INSTALL_REGISTRY} "${UNINSTALL_KEY}" \
                      "DisplayName"     "${APPNAME}"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" \
-                     "UninstallString" "$\"INSTDIR\Uninstall.exe$\""
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" \
-                     "QuietUninstallString" "$\"INSTDIR\Uninstall.exe$\" /S"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" \
-                     "InstallLocation" "$\"$INSTDIR$\""
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" \
+    WriteRegStr ${INSTALL_REGISTRY} "${UNINSTALL_KEY}" \
+                     "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
+    WriteRegStr ${INSTALL_REGISTRY} "${UNINSTALL_KEY}" \
+                     "QuietUninstallString" "$\"$INSTDIR\Uninstall.exe$\" /S"
+    WriteRegStr ${INSTALL_REGISTRY} "${UNINSTALL_KEY}" \
+                     "InstallLocation" "$INSTDIR"
+    WriteRegStr ${INSTALL_REGISTRY} "${UNINSTALL_KEY}" \
+                     "DisplayIcon"     "$INSTDIR\vela-docs.exe,0"
+    WriteRegStr ${INSTALL_REGISTRY} "${UNINSTALL_KEY}" \
                      "Publisher"       "${COMPANYNAME}"
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" \
-                     "DisplayVersion"  "${VERSIONMAJOR}.${VERSIONMINOR}.${VERSIONBUILD}"
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" \
+    WriteRegStr ${INSTALL_REGISTRY} "${UNINSTALL_KEY}" \
+                     "DisplayVersion"  "${VERSION}"
+    WriteRegDWORD ${INSTALL_REGISTRY} "${UNINSTALL_KEY}" \
                      "VersionMajor"    "${VERSIONMAJOR}"
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" \
+    WriteRegDWORD ${INSTALL_REGISTRY} "${UNINSTALL_KEY}" \
                      "VersionMinor"    "${VERSIONMINOR}"
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" \
+    WriteRegDWORD ${INSTALL_REGISTRY} "${UNINSTALL_KEY}" \
                      "NoModify"        1
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" \
+    WriteRegDWORD ${INSTALL_REGISTRY} "${UNINSTALL_KEY}" \
                      "NoRepair"        1
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" \
+    WriteRegDWORD ${INSTALL_REGISTRY} "${UNINSTALL_KEY}" \
                      "EstimatedSize"   "${INSTALLSIZE}"
 
+!ifndef VELA_PER_USER
     ; File-type association for .docx (opens with Vela Docs)
     WriteRegStr HKCR ".docx" "" "VelaDocs.Document"
     WriteRegStr HKCR "VelaDocs.Document" "" "Word Document"
     WriteRegStr HKCR "VelaDocs.Document\DefaultIcon" "" "$\"$INSTDIR\vela-docs.exe$\",0"
     WriteRegStr HKCR "VelaDocs.Document\shell\open\command" "" \
                      "$\"$INSTDIR\vela-docs.exe$\" $\"%1$\""
+!endif
 
 SectionEnd
 
@@ -158,7 +176,9 @@ Section "Uninstall"
     RMDir  "$SMPROGRAMS\Vela Docs"
 
     ; Registry
-    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
+    DeleteRegKey ${INSTALL_REGISTRY} "${UNINSTALL_KEY}"
+!ifndef VELA_PER_USER
     DeleteRegKey HKCR ".docx"
     DeleteRegKey HKCR "VelaDocs.Document"
+!endif
 SectionEnd

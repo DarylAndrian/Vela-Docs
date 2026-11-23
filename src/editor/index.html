@@ -26,63 +26,17 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Vela Docs 0.4.2</title>
-
-    <!-- Local fonts.
-         NOTE: the inter / source-serif-4 / jetbrains-mono woff2 files below are
-         NOT in the repository — resources/fonts/ ships only Material Symbols.
-         Each rule therefore starts with local() so an installed copy is used
-         and the app degrades to system-ui instead of failing outright. Run
-         tools/fetch-material-symbols.py and add the three text fonts (or point
-         these at real bundled files) to make this deterministic. -->
-    <style>
-        @font-face {
-            font-family: 'Inter';
-            src: local('Inter'),
-                 url('qrc:/editor/dist/assets/fonts/inter-var.woff2') format('woff2-variations');
-            font-weight: 100 900;
-        }
-        @font-face {
-            font-family: 'Source Serif 4';
-            src: local('Source Serif 4'),
-                 url('qrc:/editor/dist/assets/fonts/source-serif-4-var.woff2') format('woff2-variations');
-            font-weight: 100 900;
-        }
-        @font-face {
-            font-family: 'JetBrains Mono';
-            src: local('JetBrains Mono'),
-                 url('qrc:/editor/dist/assets/fonts/jetbrains-mono-var.woff2') format('woff2-variations');
-        }
-        @font-face {
-            font-family: 'Material Symbols Outlined';
-            font-style: normal;
-            font-weight: 400;
-            src: url('qrc:/fonts/material-symbols-outlined.woff2') format('woff2');
-        }
-    </style>
+    <title>Vela Docs</title>
 
     <link rel="stylesheet" href="qrc:/editor/dist/editor.bundle.css">
 
     <style>
         html, body { margin: 0; padding: 0; height: 100%; font-family: 'Inter', system-ui, sans-serif; font-size: 14px; }
         body { display: flex; flex-direction: column; }
+        .vela-editor-focus .ribbon, .vela-editor-focus .toolbar, .vela-editor-focus .status-bar { display: none; }
     </style>
 </head>
 <body>
-    <!-- Top bar — v0.4.2 hamburger button on the very left (Google Docs style) -->
-    <header class="topbar">
-        <button class="files-tab" id="btn-files" title="Files (Alt+F)">
-            <span class="ms">description</span> Files
-        </button>
-        <span class="brand">Vela Docs 0.4.2</span>
-        <span class="phase-badge">Built</span>
-        <div class="topbar-spacer"></div>
-        <button class="topbar-btn" id="btn-document-tabs" title="Document tabs"><span class="ms">tab</span></button>
-        <button id="toggle-theme" class="topbar-btn" title="Toggle dark mode">
-            <span class="ms">light_mode</span>
-        </button>
-    </header>
-
     <!-- Ribbon -->
     <nav class="ribbon">
         <div class="ribbon-tabs">
@@ -252,12 +206,8 @@
             <span class="dot">·</span>
             <span id="cell-coords" hidden>R1 C1</span>
             <span class="spacer"></span>
-            <button id="btn-save"   title="Save (Ctrl+S)"><span class="ms">save</span></button>
             <button id="btn-export" title="Download as HTML"><span class="ms">download</span></button>
             <button id="btn-clear"  title="Clear doc" class="danger"><span class="ms">delete_sweep</span></button>
-            <span class="dot">·</span>
-            <span id="theme-name">Light</span>
-            <button id="toggle-theme-2" title="Toggle dark mode"><span class="ms">light_mode</span></button>
         </div>
     </main>
 
@@ -416,40 +366,7 @@
     </aside>
 
     <!-- Backstage overlay -->
-        <!-- Document tabs sidebar (v0.4.2 - Google Docs style) -->
-    <aside class="document-tabs-sidebar" id="document-tabs-sidebar" hidden aria-label="Document tabs">
-        <header class="dts-header">
-            <button class="dts-back-btn" id="dts-close" title="Hide document tabs">
-                <span class="ms">arrow_back</span>
-            </button>
-            <h3>Document tabs</h3>
-            <button class="dts-add-btn" id="dts-add" title="New document">
-                <span class="ms">add</span>
-            </button>
-        </header>
-        <ul class="dts-list" id="dts-list"></ul>
-    </aside>
-
-<div class="backstage" id="backstage" hidden>
-        <div class="backstage-rail">
-            <button class="backstage-item is-active" data-panel="save"><span class="ms">save</span> Save</button>
-            <button class="backstage-item" data-panel="saveAs"><span class="ms">save_as</span> Save As</button>
-            <button class="backstage-item" data-panel="open"><span class="ms">folder_open</span> Open</button>
-            <div class="backstage-divider"></div>
-            <button class="backstage-item" data-panel="print"><span class="ms">print</span> Print</button>
-            <button class="backstage-item" data-panel="printPreview"><span class="ms">visibility</span> Print Preview</button>
-            <div class="backstage-divider"></div>
-            <button class="backstage-item" data-panel="options"><span class="ms">settings</span> Options</button>
-            <button class="backstage-item" data-panel="help"><span class="ms">help</span> Help</button>
-            <div class="backstage-divider"></div>
-            <button class="backstage-item" data-panel="recent"><span class="ms">history</span> Recent</button>
-        </div>
-        <div class="backstage-content" id="backstage-content">
-            <button class="backstage-close" id="backstage-close" title="Close (Esc)"><span class="ms">close</span></button>
-        </div>
-    </div>
-
-    <!-- QtWebEngine's channel client. Provided by QtWebEngineCore itself, so it
+        <!-- QtWebEngine's channel client. Provided by QtWebEngineCore itself, so it
          needs no bundling. Must load before the editor bundle: vela-bridge.js
          checks for the QWebChannel constructor at startup. In a plain browser
          this 404s harmlessly and the bridge reports isNative = false. -->

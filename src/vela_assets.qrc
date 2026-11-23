@@ -13,6 +13,7 @@
 <RCC>
     <qresource prefix="/">
         <file alias="styles/vela-precision.qss">../resources/styles/vela-precision.qss</file>
+        <file alias="icons/vela-docs.png">../resources/icons/vela-docs.png</file>
         <file alias="editor/index.html">editor/index.html</file>
         <file alias="editor/dist/editor.bundle.js">editor/dist/editor.bundle.js</file>
         <file alias="editor/dist/editor.bundle.css">editor/dist/editor.bundle.css</file>

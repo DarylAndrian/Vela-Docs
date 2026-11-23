@@ -86,6 +86,7 @@ signals:
     void commandTimeout(qint64 requestId, const QString& command);
     /// JS reported an exception.
     void errorReported(const QString& where, const QString& message);
+    void activeDocumentChanged(const QVariantMap& body, const QString& documentId);
 
     // Legacy — body / document state events.
     void bodyChanged(const QVariantMap& body);

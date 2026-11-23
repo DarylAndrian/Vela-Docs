@@ -4,7 +4,7 @@
 > professional feature density of **Microsoft Word** with the clean, modern
 > ergonomics of **Google Docs**.
 
-[![Version](https://img.shields.io/badge/version-0.5.0-blueviolet)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.5.1-blueviolet)](CHANGELOG.md)
 [![C++](https://img.shields.io/badge/C%2B%2B-20-blue)](isocpp.org)
 [![Qt](https://img.shields.io/badge/Qt-6.10.3-green)](qt.io)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
@@ -232,7 +232,7 @@ vela-docs/
 ├── CHANGELOG.md                                 # Full v0.3.x + v0.4.x + v0.5.0 change log
 ├── README.md                                    # ← you are here
 ├── build.bat / build.sh                         # Qt + CMake build helpers
-├── CMakeLists.txt                               # Top-level CMake (VERSION 0.5.0)
+├── CMakeLists.txt                               # Top-level CMake and app version
 ├── tools/                                       # Python build helpers
 │   ├── fetch-material-symbols.py                # Bundles Material Symbols font (offline)
 │   └── generate-material-icons.py               # Generates the 55 Ribbon SVG icons
@@ -292,7 +292,7 @@ vela-docs/
 │           ├── title.js
 │           ├── subtitle.js
 │           └── custom-style.js
-├── installer/                                   # NSIS installer (VERSIONBUILD 0 for v0.5.0)
+├── installer/                                   # NSIS installer
 ├── tests/                                       # Catch2
 │   └── unit/
 │       ├── test_docx.cpp                        # existing v0.3.x tests
@@ -311,7 +311,7 @@ build.bat run
 ```
 
 Output: `build\bin\Release\vela-docs.exe`
-Installer: `build\installer\output\vela-docs-0.5.0-setup.exe`
+The NSIS installer is written to `installer\VelaDocs-Setup-0.5.1.exe`.
 
 See [docs/BUILD.md](docs/BUILD.md) for full instructions.
 

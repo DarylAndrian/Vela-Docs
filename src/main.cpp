@@ -21,8 +21,10 @@
 int main(int argc, char *argv[])
 {
 #ifdef Q_OS_WIN
-    // Make console output work nicely in Visual Studio's "Start Without Debugging"
-    if (AttachConsole(ATTACH_PARENT_PROCESS) || AllocConsole()) {
+    // A normal launch is a GUI process (WIN32_EXECUTABLE). Only reuse a console
+    // that already exists — cmd, PowerShell, or Visual Studio. AllocConsole()
+    // would pop a black log window on every double-click.
+    if (AttachConsole(ATTACH_PARENT_PROCESS)) {
         freopen("CONOUT$", "w", stdout);
         freopen("CONOUT$", "w", stderr);
     }

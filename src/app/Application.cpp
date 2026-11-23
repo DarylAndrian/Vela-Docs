@@ -10,6 +10,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFontDatabase>
+#include <QIcon>
 #include <QStandardPaths>
 #include <QStyleFactory>
 #include <QSurfaceFormat>
@@ -24,6 +25,7 @@ Application::Application(int& argc, char** argv)
     setApplicationName(QStringLiteral("Vela Docs"));
     setApplicationDisplayName(QStringLiteral("Vela Docs"));
     setApplicationVersion(QStringLiteral(VE_VERSION));
+    setWindowIcon(QIcon(QStringLiteral(":/icons/vela-docs.png")));
 
     // OpenGL profile for WebEngine (no-op if WebEngine isn't built)
     QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();

@@ -60,12 +60,17 @@ QVariantMap executeLocal(const QString& cmd, const QVariantMap& args,
             r["error"] = QStringLiteral("no active document");
         } else {
             r["body"] = active->body().toVariantMap();
+            r["documentId"] = active->id();
             r["ok"]   = true;
         }
     } else if (cmd == "setBody") {
         if (!active) {
             r["ok"]    = false;
             r["error"] = QStringLiteral("no active document");
+        } else if (args.contains("documentId")
+                   && args.value("documentId").toString() != active->id()) {
+            r["ok"] = false;
+            r["error"] = QStringLiteral("active document changed");
         } else {
             active->setBody(QJsonObject::fromVariantMap(args.value("body").toMap()));
             r["ok"] = true;
@@ -109,6 +114,15 @@ EditorBridge::EditorBridge(DocumentController* controller, QObject* parent)
     : QObject(parent)
     , m_controller(controller)
 {
+    if (m_controller) {
+        connect(m_controller, &DocumentController::activeDocumentChanged, this, [this] {
+            const auto* active = m_controller->activeDocument();
+            emit activeDocumentChanged(
+                active ? active->body().toVariantMap() : QVariantMap{},
+                active ? active->id() : QString{});
+        });
+    }
+
     // Single 100 ms ticker — we use it as a sweeping mechanism for the watchdog.
     m_watchdog.setSingleShot(false);
     m_watchdog.setInterval(100);

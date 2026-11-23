@@ -34,6 +34,8 @@
 import { dispatcher, registerCommand } from '~dispatcher';
 
 import { Editor } from '@tiptap/core';
+import { EditorState } from '@tiptap/pm/state';
+import { version as APP_VERSION } from '../package.json';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
@@ -77,7 +79,7 @@ import { velaBridge } from './vela-bridge.js';
 // app's qrc:/editor/dist/editor.bundle.css reference resolves to nothing.
 import './styles.css';
 
-const APP_VERSION = '0.4.2';
+const nativeEditor = !!window.qt?.webChannelTransport;
 
 // ── Sample document ───────────────────────────────────────────────────────
 const sampleDoc = {
@@ -164,7 +166,7 @@ const editor = new Editor({
         // full extension rebuild or lose the editor selection.
         TabStopPlugin({ pageWidthInches: 8.5, marginLeftInches: 1.0, marginRightInches: 1.0 }),
     ],
-    content: sampleDoc,
+    content: nativeEditor ? '' : sampleDoc,
     onUpdate: () => { updateStats(); updateTableButtons(); syncRulerWithEditor(); },
     onSelectionUpdate: () => { updateActiveStates(); updateTableButtons(); updateCellCoords(); updateStyleDropdownLabel(); syncRulerWithEditor(); },
 });
@@ -312,29 +314,39 @@ window.__findBar = (() => {
 
 
 // ── Native bridge ─────────────────────────────────────────────────────────
-// In the Qt shell this is what makes File > Save persist anything: the editor
-// pushes its ProseMirror JSON into DocumentController, and pulls the document
-// back on startup. In a plain browser every call resolves {ok:false} and the
-// playground behaves exactly as before.
 velaBridge.connect().then(async () => {
     if (!velaBridge.isNative) return;
 
-    const loaded = await velaBridge.getBody();
-    if (loaded.ok && loaded.body && Array.isArray(loaded.body.content)
-        && loaded.body.content.length > 0) {
-        editor.commands.setContent(loaded.body, false);
-    }
-
-    // Debounced push so a burst of typing is one bridge call, not hundreds.
     let pushTimer = 0;
-    editor.on('update', () => {
+    let documentId = null;
+    const showDocument = (body, id) => {
         clearTimeout(pushTimer);
+        documentId = id;
+        editor.commands.setContent(body?.content?.length ? body : '', false);
+        const { doc, schema, plugins } = editor.state;
+        editor.view.updateState(EditorState.create({ doc, schema, plugins }));
+        updateStats();
+        updateActiveStates();
+        updateTableButtons();
+        syncRulerWithEditor();
+    };
+
+    velaBridge.onActiveDocumentChanged(showDocument);
+    editor.on('update', () => {
+        if (!documentId) return;
+        clearTimeout(pushTimer);
+        const editedDocumentId = documentId;
         pushTimer = setTimeout(() => {
-            velaBridge.setBody(editor.getJSON()).then((r) => {
-                if (!r.ok) console.warn('[vela-bridge] setBody failed:', r.error);
+            velaBridge.setBody(editor.getJSON(), editedDocumentId).then((r) => {
+                if (!r.ok && documentId === editedDocumentId) {
+                    console.warn('[vela-bridge] setBody failed:', r.error);
+                }
             });
         }, 400);
     });
+
+    const loaded = await velaBridge.getBody();
+    if (documentId === null && loaded.ok) showDocument(loaded.body, loaded.documentId);
 });
 
 // ── Pagination (v0.5.0) ───────────────────────────────────────────────────
@@ -1109,8 +1121,9 @@ mountTableSettingsPanel({
     onReset:  () => flashStatus('✓ Table settings reset'),
 });
 
-window.__docTabs = mountDocumentTabs({
-    sidebar: document.getElementById('document-tabs-sidebar'),
+const docTabSidebar = document.getElementById('document-tabs-sidebar');
+if (docTabSidebar) window.__docTabs = mountDocumentTabs({
+    sidebar: docTabSidebar,
     list:    document.getElementById('dts-list'),
     addBtn:  document.getElementById('dts-add'),
     onSelect: (id) => flashStatus(`✓ Switched to ${id}`),
@@ -1160,6 +1173,93 @@ sizeSelect?.addEventListener('change', () => {
     const px = parseInt(sizeSelect.value, 10);
     if (!isNaN(px)) editor.chain().focus().setMark('textStyle', { fontSize: `${px}px` }).run();
 });
+
+// Native <select> popups grow continuously on fractional-DPI displays.
+// Swap every toolbar select for a fixed button and an in-page menu.
+document.querySelectorAll('select.toolbar-select').forEach(upgradeToolbarSelect);
+
+function upgradeToolbarSelect(select) {
+    if (!select || select.dataset.upgraded === '1') return;
+    select.dataset.upgraded = '1';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'toolbar-menu' + (select.classList.contains('narrow') ? ' is-narrow' : '');
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'toolbar-menu-trigger';
+    trigger.title = select.title || '';
+
+    const label = document.createElement('span');
+    label.className = 'toolbar-menu-label';
+
+    const caret = document.createElement('span');
+    caret.className = 'ms toolbar-menu-caret';
+    caret.textContent = 'expand_more';
+
+    const menu = document.createElement('div');
+    menu.className = 'toolbar-menu-list';
+    menu.hidden = true;
+
+    function syncLabel() {
+        const opt = select.options[select.selectedIndex];
+        label.textContent = opt ? opt.text : select.value;
+    }
+
+    function closeMenu() {
+        menu.hidden = true;
+    }
+
+    function openMenu() {
+        document.querySelectorAll('.toolbar-menu-list').forEach((other) => {
+            if (other !== menu) other.hidden = true;
+        });
+        menu.replaceChildren();
+        for (const opt of select.options) {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'toolbar-menu-item' + (opt.selected ? ' is-current' : '');
+            item.textContent = opt.text;
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                select.value = opt.value;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                syncLabel();
+                closeMenu();
+            });
+            menu.appendChild(item);
+        }
+        if (menu.parentElement !== document.body) document.body.appendChild(menu);
+        const rect = trigger.getBoundingClientRect();
+        menu.style.left = `${rect.left}px`;
+        menu.style.top = `${rect.bottom + 4}px`;
+        menu.style.minWidth = `${Math.round(rect.width)}px`;
+        menu.hidden = false;
+    }
+
+    trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (menu.hidden) openMenu();
+        else closeMenu();
+    });
+    document.addEventListener('click', (e) => {
+        if (wrap.contains(e.target) || menu.contains(e.target)) return;
+        closeMenu();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeMenu();
+    });
+    select.addEventListener('mousedown', (e) => e.preventDefault());
+    select.addEventListener('change', syncLabel);
+
+    trigger.append(label, caret);
+    select.hidden = true;
+    select.replaceWith(wrap);
+    wrap.append(trigger, select);
+    syncLabel();
+}
 
 // ── Page size selector (Format tab, v0.5.0) ───────────────────────────────
 const pageSizeSelect = document.getElementById('page-size-select');
@@ -1217,7 +1317,7 @@ document.getElementById('btn-export')?.addEventListener('click', () => execComma
 document.getElementById('btn-clear')?.addEventListener('click', () => execCommand('clear'));
 
 // ── Welcome / empty-state overlay (v0.4.1) ──────────────────────────────
-window.__welcome = mountWelcome(document.body, {
+if (!nativeEditor) window.__welcome = mountWelcome(document.body, {
     version: APP_VERSION,
     onPickTemplate: (id) => {
         editor.commands.clearContent();
@@ -1238,6 +1338,7 @@ window.__welcome = mountWelcome(document.body, {
 
 // Status bar version chip
 (function mountVersionChip() {
+    if (nativeEditor) return;
     const statusEl = document.getElementById('status');
     if (!statusEl || statusEl.querySelector('.version-chip')) return;
     const chip = document.createElement('span');
@@ -1262,7 +1363,7 @@ if (backstageEl) observer.observe(backstageEl, { attributes: true, attributeFilt
 document.addEventListener('keydown', (e) => {
     const mod = e.ctrlKey || e.metaKey;
     if (!mod) {
-        if (e.altKey && e.key.toLowerCase() === 'f') {
+        if (!nativeEditor && e.altKey && e.key.toLowerCase() === 'f') {
             e.preventDefault();
             execCommand('toggleFiles');
         }
@@ -1283,7 +1384,9 @@ document.addEventListener('keydown', (e) => {
             case 'b': execCommand('bold'); e.preventDefault(); return;
             case 'i': execCommand('italic'); e.preventDefault(); return;
             case 'u': execCommand('underline'); e.preventDefault(); return;
-            case 's': execCommand('save'); e.preventDefault(); return;
+            case 's':
+                if (!nativeEditor) { execCommand('save'); e.preventDefault(); }
+                return;
             case 'k': execCommand('insertLink'); e.preventDefault(); return;
             case '0': execCommand('heading', 'p'); e.preventDefault(); return;
         }

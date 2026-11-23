@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 3.24)
 project(VelaDocs
-    VERSION 0.5.0
+    VERSION 0.5.1
     DESCRIPTION "A modern word processor combining MS Word + Google Docs features"
     LANGUAGES CXX
 )
@@ -193,4 +193,6 @@ set(CPACK_GENERATOR "NSIS;IFW")
 set(CPACK_IFW_VERBOSE ON)
 set(CPACK_NSIS_DISPLAY_NAME "Vela Docs ${PROJECT_VERSION}")
 set(CPACK_NSIS_PACKAGE_NAME "VelaDocs-${PROJECT_VERSION}")
+set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/resources/icons/vela-docs.ico")
+set(CPACK_NSIS_MUI_UNIICON "${CPACK_NSIS_MUI_ICON}")
 include(CPack)

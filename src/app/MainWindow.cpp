@@ -9,6 +9,7 @@
 #include "app/LeftRail.h"
 #include "app/RecentFiles.h"
 #include "app/EditorBridge.h"
+#include "app/WelcomeView.h"
 #include "ui/dialogs/AboutDialog.h"
 #include "ui/dialogs/PageSetupDialog.h"
 #include "document/Document.h"
@@ -39,7 +40,6 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QMimeData>
-#include <QPushButton>
 #include <QStackedWidget>
 #include <QStyle>
 #include <QToolBar>
@@ -78,8 +78,6 @@ MainWindow::MainWindow(QWidget* parent)
     VE_LOG_DEBUG("MainWindow constructing");
     setObjectName(QStringLiteral("VelaMainWindow"));
     setWindowTitle(QStringLiteral("Vela Docs"));
-    setWindowIcon(QIcon::fromTheme(QStringLiteral("text-editor"),
-        QApplication::style()->standardIcon(QStyle::SP_FileIcon)));
     resize(kDefaultWindowWidth, kDefaultWindowHeight);
     setMinimumSize(kMinimumWindowWidth, kMinimumWindowHeight);
     setAcceptDrops(true);
@@ -100,7 +98,7 @@ MainWindow::MainWindow(QWidget* parent)
             });
 
     buildActions();
-    buildMenuBar();   // ← now richer (File / Edit / Insert / Format / Tools / Table / Help)
+    buildMenuBar();
     buildTopBar();
     buildTabStrip();
     buildLeftRail();
@@ -173,6 +171,17 @@ void MainWindow::buildActions()
     m_actCopy->setShortcut(QKeySequence::Copy);
     m_actPaste = new QAction(tr("&Paste"), this);
     m_actPaste->setShortcut(QKeySequence::Paste);
+#ifdef VE_HAS_WEBENGINE
+    connect(m_actCut, &QAction::triggered, this, [this] {
+        if (m_webView) m_webView->triggerPageAction(QWebEnginePage::Cut);
+    });
+    connect(m_actCopy, &QAction::triggered, this, [this] {
+        if (m_webView) m_webView->triggerPageAction(QWebEnginePage::Copy);
+    });
+    connect(m_actPaste, &QAction::triggered, this, [this] {
+        if (m_webView) m_webView->triggerPageAction(QWebEnginePage::Paste);
+    });
+#endif
 
     m_actFind = new QAction(tr("&Find and Replace…"), this);
     m_actFind->setShortcut(QKeySequence::Find);
@@ -370,15 +379,20 @@ void MainWindow::buildActions()
 
     m_actZoomIn = new QAction(tr("Zoom &In"), this);
     m_actZoomIn->setShortcut(QKeySequence::ZoomIn);
+    connect(m_actZoomIn, &QAction::triggered, this, &MainWindow::zoomIn);
     m_actZoomOut = new QAction(tr("Zoom &Out"), this);
     m_actZoomOut->setShortcut(QKeySequence::ZoomOut);
+    connect(m_actZoomOut, &QAction::triggered, this, &MainWindow::zoomOut);
     m_actZoomReset = new QAction(tr("&Reset Zoom"), this);
     m_actZoomReset->setShortcut(QKeySequence(QStringLiteral("Ctrl+0")));
+    connect(m_actZoomReset, &QAction::triggered, this, &MainWindow::zoomReset);
 
     // ── Output ─────────────────────────────────────────────────
     m_actPrint = new QAction(tr("&Print…"), this);
     m_actPrint->setShortcut(QKeySequence::Print);
+    m_actPrint->setEnabled(false);
     m_actExportPdf = new QAction(tr("Export as P&DF…"), this);
+    m_actExportPdf->setEnabled(false);
 
     // ── Settings ───────────────────────────────────────────────
     m_actPreferences = new QAction(tr("&Preferences…"), this);
@@ -404,16 +418,15 @@ void MainWindow::buildActions()
     connect(m_actAbout, &QAction::triggered, this, &MainWindow::showAbout);
 
     // ── Top-bar actions ────────────────────────────────────────
-    m_actToggleTheme = new QAction(
-        QApplication::style()->standardIcon(QStyle::SP_FileDialogInfoView),
-        tr("Toggle Theme"), this);
-    m_actToggleTheme->setToolTip(tr("Toggle theme"));
-    connect(m_actToggleTheme, &QAction::triggered, this, &MainWindow::toggleDarkMode);
+    m_actToggleTheme = new QAction(tr("Dark mode"), this);
+    connect(m_actToggleTheme, &QAction::triggered, this, [this] {
+        m_actDarkMode->toggle();
+    });
 }
 
 void MainWindow::buildMenuBar()
 {
-    m_menuBar = menuBar();
+    m_menuBar = new QMenuBar(this);
     m_menuBar->setObjectName(QStringLiteral("VelaMenuBar"));
 
     // ── File ──────────────────────────────────────────────────
@@ -434,6 +447,7 @@ void MainWindow::buildMenuBar()
 
     // ── Edit ──────────────────────────────────────────────────
     QMenu* editMenu = m_menuBar->addMenu(tr("&Edit"));
+    editMenu->menuAction()->setProperty("editorOnly", true);
     editMenu->addAction(m_actUndo);
     editMenu->addAction(m_actRedo);
     editMenu->addSeparator();
@@ -445,6 +459,7 @@ void MainWindow::buildMenuBar()
 
     // ── Insert ───────────────────────────────────────────────
     QMenu* insertMenu = m_menuBar->addMenu(tr("&Insert"));
+    insertMenu->menuAction()->setProperty("editorOnly", true);
     insertMenu->addAction(m_actInsertImage);
     insertMenu->addAction(m_actInsertTable);
     insertMenu->addAction(m_actInsertLink);
@@ -455,6 +470,7 @@ void MainWindow::buildMenuBar()
 
     // ── Format ───────────────────────────────────────────────
     QMenu* formatMenu = m_menuBar->addMenu(tr("F&ormat"));
+    formatMenu->menuAction()->setProperty("editorOnly", true);
     QMenu* styleMenu = formatMenu->addMenu(tr("&Paragraph Style"));
     styleMenu->addAction(m_actNormalText);
     styleMenu->addAction(m_actHeading1);
@@ -495,6 +511,7 @@ void MainWindow::buildMenuBar()
 
     // ── Table ────────────────────────────────────────────────
     QMenu* tableMenu = m_menuBar->addMenu(tr("&Table"));
+    tableMenu->menuAction()->setProperty("editorOnly", true);
     tableMenu->addAction(m_actInsertTable);
     tableMenu->addSeparator();
     tableMenu->addAction(m_actTblInsertRowAbove);
@@ -538,35 +555,28 @@ void MainWindow::buildTopBar()
 {
     m_topBar = new QWidget(this);
     m_topBar->setObjectName(QStringLiteral("VelaTopBar"));
-    m_topBar->setFixedHeight(48);
 
-    QHBoxLayout* layout = new QHBoxLayout(m_topBar);
-    layout->setContentsMargins(0, 0, 16, 0);
-    layout->setSpacing(12);
+    auto* layout = new QHBoxLayout(m_topBar);
+    layout->setContentsMargins(16, 8, 16, 8);
+    layout->setSpacing(10);
 
-    QLabel* logo = new QLabel(QStringLiteral("Vela Docs"), m_topBar);
-    QFont logoFont;
-    logoFont.setPointSize(14);
-    logoFont.setWeight(QFont::DemiBold);
-    logo->setFont(logoFont);
-    logo->setStyleSheet(QStringLiteral("color: #3525cd;"));
-    layout->addWidget(logo);
+    auto* mark = new QLabel(m_topBar);
+    mark->setPixmap(qApp->windowIcon().pixmap(QSize(28, 28), devicePixelRatioF()));
+    layout->addWidget(mark);
 
-    QLabel* version = new QLabel(QStringLiteral("v" VE_VERSION), m_topBar);
-    version->setStyleSheet(
-        QStringLiteral("color: #464555; background: #e1e8fd; padding: 2px 8px; "
-                       "border-radius: 4px; font-size: 11px; font-weight: 500;"));
-    layout->addWidget(version);
+    auto* brand = new QLabel(tr("Vela Docs"), m_topBar);
+    brand->setObjectName(QStringLiteral("VelaTopBarBrand"));
+    layout->addWidget(brand);
+    layout->addSpacing(12);
+    layout->addWidget(m_menuBar);
 
     layout->addStretch(1);
 
-    QToolButton* themeBtn = new QToolButton(m_topBar);
+    auto* themeBtn = new QToolButton(m_topBar);
+    themeBtn->setObjectName(QStringLiteral("VelaThemeButton"));
+    themeBtn->setToolButtonStyle(Qt::ToolButtonTextOnly);
     themeBtn->setDefaultAction(m_actToggleTheme);
-    themeBtn->setIconSize(QSize(20, 20));
-    themeBtn->setAutoRaise(true);
     layout->addWidget(themeBtn);
-
-    // v0.4.2 - removed redundant Preferences button (lives in Backstage Options).
 
     setMenuWidget(m_topBar);
 }
@@ -612,76 +622,11 @@ void MainWindow::buildEditorArea()
 {
     m_centralStack = new QStackedWidget(this);
 
-    // Welcome view — same as before
-    m_welcomeView = new QWidget(this);
-    m_welcomeView->setObjectName(QStringLiteral("VelaWelcome"));
-    QVBoxLayout* welcomeLayout = new QVBoxLayout(m_welcomeView);
-    welcomeLayout->setAlignment(Qt::AlignCenter);
-    welcomeLayout->setContentsMargins(48, 48, 48, 48);
-    welcomeLayout->setSpacing(32);
-
-    QLabel* hero = new QLabel(QStringLiteral("A modern word processor that speaks your language."), m_welcomeView);
-    hero->setObjectName(QStringLiteral("VelaWelcomeHero"));
-    hero->setAlignment(Qt::AlignCenter);
-    hero->setWordWrap(true);
-    welcomeLayout->addWidget(hero);
-
-    QLabel* tagline = new QLabel(
-        tr("Create, edit, and collaborate with seamless precision. Vela Docs is designed to keep your focus entirely on the words."),
-        m_welcomeView);
-    tagline->setObjectName(QStringLiteral("VelaWelcomeTagline"));
-    tagline->setAlignment(Qt::AlignCenter);
-    tagline->setWordWrap(true);
-    welcomeLayout->addWidget(tagline);
-
-    QLabel* templatesLabel = new QLabel(tr("Start a new document"), m_welcomeView);
-    templatesLabel->setObjectName(QStringLiteral("VelaWelcomeSection"));
-    welcomeLayout->addWidget(templatesLabel);
-
-    QGridLayout* templatesGrid = new QGridLayout();
-    templatesGrid->setSpacing(12);
-    const QStringList templates = { tr("Blank"), tr("Resume"), tr("Letter"),
-                                    tr("Report"), tr("Invoice") };
-    for (int i = 0; i < templates.size(); ++i) {
-        QPushButton* card = new QPushButton(templates[i], m_welcomeView);
-        card->setObjectName(QStringLiteral("VelaTemplateCard"));
-        card->setMinimumHeight(160);
-        card->setMinimumWidth(140);
-        connect(card, &QPushButton::clicked, this, [this, name = templates[i]]() {
-            openTemplate(name);
-        });
-        templatesGrid->addWidget(card, i / 5, i % 5);
-    }
-    welcomeLayout->addLayout(templatesGrid);
-
-    QLabel* recentLabel = new QLabel(tr("Recent documents"), m_welcomeView);
-    recentLabel->setObjectName(QStringLiteral("VelaWelcomeSection"));
-    welcomeLayout->addWidget(recentLabel);
-
-    QHBoxLayout* recentRow = new QHBoxLayout();
-    recentRow->setSpacing(12);
-    const auto recent = m_recentFiles->list();
-    if (recent.isEmpty()) {
-        QLabel* empty = new QLabel(tr("No recent files — open one to get started."), m_welcomeView);
-        empty->setStyleSheet(QStringLiteral("color: #777587; font-style: italic;"));
-        recentRow->addWidget(empty);
-    } else {
-        for (int i = 0; i < qMin(4, recent.size()); ++i) {
-            const QString path = recent[i];
-            QPushButton* recentBtn = new QPushButton(QFileInfo(path).fileName(), m_welcomeView);
-            recentBtn->setObjectName(QStringLiteral("VelaRecentFileCard"));
-            recentBtn->setMinimumHeight(80);
-            recentBtn->setMinimumWidth(180);
-            recentBtn->setToolTip(path);
-            connect(recentBtn, &QPushButton::clicked, this, [this, path]() {
-                openDocument(path);
-            });
-            recentRow->addWidget(recentBtn);
-        }
-    }
-    welcomeLayout->addLayout(recentRow);
-
-    welcomeLayout->addStretch(1);
+    m_welcomeView = new WelcomeView(m_centralStack);
+    m_welcomeView->setRecentFiles(m_recentFiles->list());
+    connect(m_welcomeView, &WelcomeView::newRequested, this, &MainWindow::newDocument);
+    connect(m_welcomeView, &WelcomeView::openRequested, this, &MainWindow::openDocumentDialog);
+    connect(m_welcomeView, &WelcomeView::recentRequested, this, &MainWindow::openDocument);
     m_centralStack->addWidget(m_welcomeView);
 
 #ifdef VE_HAS_WEBENGINE
@@ -745,6 +690,7 @@ void MainWindow::setupWebChannel()
     m_webChannel = new QWebChannel(this);
     m_webChannel->registerObject(QStringLiteral("vela"), m_bridge);
     m_webView->page()->setWebChannel(m_webChannel);
+    connect(m_webView, &QWebEngineView::loadFinished, this, &MainWindow::updateEditorAppearance);
 
     const QUrl url = editorUrlForRuntime();
     VE_LOG_INFO(QStringLiteral("MainWindow: editor URL = %1").arg(url.toString()));
@@ -765,6 +711,9 @@ void MainWindow::wireSignals()
 {
     connect(m_recentFiles, &RecentFiles::changed,
             this, &MainWindow::updateRecentFilesMenu);
+    connect(m_recentFiles, &RecentFiles::changed, m_welcomeView, [this] {
+        m_welcomeView->setRecentFiles(m_recentFiles->list());
+    });
     connect(m_tabBar, &TabBar::closeRequested,
             this, &MainWindow::closeDocument);
 
@@ -789,7 +738,7 @@ void MainWindow::updateWindowTitle()
     QString title = QStringLiteral("Vela Docs");
     if (!m_currentFile.isEmpty())
         title = QFileInfo(m_currentFile).fileName() + QStringLiteral(" — Vela Docs");
-    else
+    else if (m_controller && m_controller->activeDocument())
         title = tr("Untitled — Vela Docs");
     if (m_controller && m_controller->hasUnsavedChanges())
         title.prepend(QChar(0x2022) + QStringLiteral(" "));
@@ -819,18 +768,38 @@ void MainWindow::updateRecentFilesMenu()
 void MainWindow::showWelcomeView()
 {
     if (m_centralStack) m_centralStack->setCurrentIndex(0);
+    updateWorkspaceChrome();
 }
 
 void MainWindow::showEditorView()
 {
     if (m_centralStack && m_centralStack->count() > 1)
         m_centralStack->setCurrentIndex(1);
+    updateWorkspaceChrome();
 }
 
-void MainWindow::openTemplate(const QString& templateName)
+void MainWindow::updateWorkspaceChrome()
 {
-    Q_UNUSED(templateName);
-    newDocument();
+    const bool editing = m_centralStack->currentIndex() == 1;
+    for (auto* action : m_menuBar->actions()) {
+        if (action->property("editorOnly").toBool())
+            action->setVisible(editing);
+    }
+    m_actSave->setEnabled(editing);
+    m_actSaveAs->setEnabled(editing);
+    m_actClose->setEnabled(editing);
+    m_actFocusMode->setEnabled(editing);
+    m_actZoomIn->setEnabled(editing);
+    m_actZoomOut->setEnabled(editing);
+    m_actZoomReset->setEnabled(editing);
+
+    // The embedded editor already supplies its own ribbon and status bar.
+    const bool showNativeTools = editing && !m_focusMode && !m_webView;
+    m_ribbon->setVisible(showNativeTools);
+    m_leftRail->setVisible(showNativeTools);
+    m_statusBar->setVisible(showNativeTools);
+    if (!showNativeTools) m_sidebar->hide();
+    m_tabBar->setVisible(editing && !m_focusMode && m_tabBar->count() > 0);
 }
 
 bool MainWindow::openDocument(const QString& filePath)
@@ -882,18 +851,8 @@ void MainWindow::newDocument()
 
 void MainWindow::openDocumentDialog()
 {
-    const QStringList filters{
-        tr("All Supported (*.docx *.doc *.odt *.rtf *.md *.txt *.html)"),
-        tr("Word Document (*.docx *.doc)"),
-        tr("OpenDocument Text (*.odt)"),
-        tr("Rich Text Format (*.rtf)"),
-        tr("Markdown (*.md)"),
-        tr("Text File (*.txt)"),
-        tr("HTML File (*.html)"),
-        tr("All Files (*)")
-    };
     const QString path = QFileDialog::getOpenFileName(this,
-        tr("Open Document"), QString(), filters.join(QStringLiteral(";;")));
+        tr("Open Document"), QString(), tr("Word documents (*.docx)"));
     if (!path.isEmpty()) openDocument(path);
 }
 
@@ -909,6 +868,7 @@ void MainWindow::closeDocument()
     }
     m_controller->closeActiveDocument();
     m_currentFile.clear();
+    m_actFocusMode->setChecked(false);
     showWelcomeView();
     updateWindowTitle();
 }
@@ -937,23 +897,39 @@ void MainWindow::findReplace()
 void MainWindow::toggleFocusMode()
 {
     m_focusMode = m_actFocusMode->isChecked();
-    const bool visible = !m_focusMode;
-    if (m_ribbon)   m_ribbon->setVisible(visible);
-    if (m_tabBar)   m_tabBar->setVisible(visible);
-    if (m_leftRail) m_leftRail->setVisible(visible);
-    if (m_sidebar)  m_sidebar->setVisible(visible);
-    m_menuBar->setVisible(visible);
-    if (m_statusBar) m_statusBar->setVisible(visible);
+    updateWorkspaceChrome();
+    updateEditorAppearance();
 }
 
 void MainWindow::toggleDarkMode()
 {
     m_darkMode = m_actDarkMode->isChecked();
     setProperty("dark", m_darkMode);
+    m_actToggleTheme->setText(m_darkMode ? tr("Light mode") : tr("Dark mode"));
+    for (auto* widget : findChildren<QWidget*>()) {
+        widget->style()->unpolish(widget);
+        widget->style()->polish(widget);
+        widget->update();
+    }
     style()->unpolish(this);
     style()->polish(this);
+    update();
+    updateEditorAppearance();
     if (m_statusBar) m_statusBar->showMessage(
         m_darkMode ? tr("Dark mode on") : tr("Dark mode off"), 2000);
+}
+
+void MainWindow::updateEditorAppearance()
+{
+#ifdef VE_HAS_WEBENGINE
+    if (m_webView) {
+        m_webView->page()->runJavaScript(QStringLiteral(
+            "document.documentElement.dataset.theme = '%1';"
+            "document.documentElement.classList.toggle('vela-editor-focus', %2);")
+            .arg(m_darkMode ? QStringLiteral("dark") : QStringLiteral("light"),
+                 m_focusMode ? QStringLiteral("true") : QStringLiteral("false")));
+    }
+#endif
 }
 
 void MainWindow::zoomIn()    { if (m_webView) m_webView->setZoomFactor(m_webView->zoomFactor() * 1.1); }
@@ -980,7 +956,7 @@ void MainWindow::showAbout()
 void MainWindow::onActiveDocumentChanged()
 {
     updateWindowTitle();
-    showEditorView();
+    if (m_controller->activeDocument()) showEditorView();
 }
 
 void MainWindow::onDirtyStateChanged(bool /*dirty*/)

@@ -1,0 +1,28 @@
+#include <winver.h>
+
+IDI_VELA_DOCS ICON "@CMAKE_SOURCE_DIR@/resources/icons/vela-docs.ico"
+
+1 VERSIONINFO
+FILEVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+PRODUCTVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName", "Vela Docs Contributors"
+            VALUE "FileDescription", "Vela Docs"
+            VALUE "FileVersion", "@PROJECT_VERSION@"
+            VALUE "OriginalFilename", "vela-docs.exe"
+            VALUE "ProductName", "Vela Docs"
+            VALUE "ProductVersion", "@PROJECT_VERSION@"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 1200
+    END
+END

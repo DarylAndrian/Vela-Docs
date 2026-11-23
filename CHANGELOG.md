@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.5.1] — 2026-11-23
+
+- Redesigned the Windows welcome screen with direct New, Open, and Recent Documents actions.
+- Added a blue Windows app icon and restored the native menus alongside a single editor ribbon.
+- Updated the Windows installer to package the deployed Qt runtime and support a per-user installation.
+
 ## [0.5.0] — 2026-07-02 — *Page Styles, Sections & Word-grade ergonomics* 📐 ✅
 
 > **Theme:** Catching up to LibreOffice Writer and MS Word on the deep structural features that ship in every "real" word processor — Page Styles (named layout templates, replacing the v0.3.x one-page-global setup), per-section columns + line numbering + drop caps + protection, the first proper multi-`<w:sectPr>` chain in the model, and a complete `<w:documentProtection>` round-trip. v0.5.0 is a *single deep feature* release, not a polish release — it bumps the data model in `Document`/`StyleSheet`/the OOXML exporter & importer.

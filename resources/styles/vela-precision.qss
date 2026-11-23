@@ -38,10 +38,28 @@ QWidget#VelaEditorArea {
 
 /* ── Top header bar (logo + version + theme + settings) ──────────────────── */
 QWidget#VelaTopBar {
-    background-color: #f9f9ff;
-    border-bottom: 1px solid #c7c4d8;
-    max-height: 48px;
-    min-height: 48px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #dde6f2;
+}
+
+QLabel#VelaTopBarBrand {
+    color: #162741;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+QToolButton#VelaThemeButton {
+    background: #f2f6fc;
+    border: 1px solid #dde6f2;
+    border-radius: 7px;
+    color: #2a4162;
+    padding: 6px 12px;
+}
+
+QToolButton#VelaThemeButton:hover,
+QToolButton#VelaThemeButton:focus {
+    background: #e5efff;
+    border-color: #6e9aff;
 }
 
 /* ── Document tab strip ──────────────────────────────────────────────────── */
@@ -240,72 +258,108 @@ QWidget#VelaPage {
 }
 
 /* ── Welcome screen ───────────────────────────────────────────────────────── */
-QWidget#VelaWelcome {
-    background-color: #f9f9ff;
+QWidget#VelaWelcome,
+QWidget#VelaWelcomeCanvas {
+    background: #f4f7fc;
+}
+
+QFrame#VelaWelcomeBanner {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #123984, stop:0.54 #174db6, stop:1 #2265e6);
+    border: 1px solid #285ac0;
+    border-radius: 18px;
 }
 
 QLabel#VelaWelcomeHero {
-    color: #141b2b;
-    font-family: "Source Serif 4", "Source Serif Pro", Georgia, serif;
-    font-size: 48px;
+    color: #ffffff;
+    font-size: 40px;
     font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
 }
 
 QLabel#VelaWelcomeTagline {
-    color: #464555;
-    font-size: 14px;
-    line-height: 20px;
-    max-width: 600px;
+    color: #e8f1ff;
+    font-size: 15px;
 }
 
 QLabel#VelaWelcomeSection {
-    color: #141b2b;
-    font-size: 18px;
-    font-weight: 600;
-    line-height: 24px;
+    color: #162741;
+    font-size: 20px;
+    font-weight: 700;
 }
 
-QPushButton#VelaTemplateCard {
-    background-color: #ffffff;
-    border: 1px solid #c7c4d8;
+QPushButton#VelaWelcomeNew,
+QPushButton#VelaWelcomeOpen {
+    border: 2px solid transparent;
     border-radius: 8px;
-    padding: 12px;
-    text-align: left;
-    color: #141b2b;
-    font-size: 12px;
-    font-weight: 500;
-    min-height: 160px;
+    font-size: 14px;
+    font-weight: 600;
+    min-height: 24px;
+    padding: 7px 15px;
 }
 
-QPushButton#VelaTemplateCard:hover {
-    border-color: #4f46e5;
-    background-color: #ffffff;
+QPushButton#VelaWelcomeNew {
+    background: #ffffff;
+    color: #123a82;
 }
 
-QPushButton#VelaTemplateCard:pressed {
-    background-color: #f1f3ff;
+QPushButton#VelaWelcomeNew:hover {
+    background: #e8f1ff;
 }
 
-QWidget#VelaTemplateThumb {
-    background-color: #f9f9ff;
-    border: 1px solid #dce2f7;
-    border-radius: 4px;
-    min-height: 100px;
+QPushButton#VelaWelcomeOpen {
+    background: #1a46a0;
+    border-color: #8eb7ff;
+    color: #ffffff;
+}
+
+QPushButton#VelaWelcomeOpen:hover {
+    background: #245abf;
+}
+
+QPushButton#VelaWelcomeNew:focus,
+QPushButton#VelaWelcomeOpen:focus {
+    border-color: #94ccff;
+}
+
+QPushButton#VelaWelcomeNew:pressed {
+    background: #cfe2ff;
+}
+
+QPushButton#VelaWelcomeOpen:pressed {
+    background: #123984;
+}
+
+QFrame#VelaWelcomeRecent {
+    background: #ffffff;
+    border: 1px solid #dde6f2;
+    border-radius: 12px;
+}
+
+QLabel#VelaWelcomeEmpty {
+    color: #475d78;
+    font-size: 14px;
+    padding: 16px 12px;
 }
 
 QPushButton#VelaRecentFileCard {
-    background-color: #ffffff;
-    border: 1px solid #c7c4d8;
-    border-radius: 8px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    color: #213953;
+    font-size: 14px;
+    min-height: 26px;
+    padding: 8px 12px;
     text-align: left;
-    color: #141b2b;
 }
 
-QPushButton#VelaRecentFileCard:hover {
-    border-color: #777587;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+QPushButton#VelaRecentFileCard:hover,
+QPushButton#VelaRecentFileCard:focus {
+    background: #edf4ff;
+    border-color: #9abaff;
+}
+
+QPushButton#VelaRecentFileCard:pressed {
+    background: #dceaff;
 }
 
 /* ── Status bar ───────────────────────────────────────────────────────────── */
@@ -408,7 +462,7 @@ QComboBox QAbstractItemView {
 
 /* ── Menus ────────────────────────────────────────────────────────────────── */
 QMenuBar {
-    background-color: #f9f9ff;
+    background-color: transparent;
     color: #141b2b;
     padding: 2px;
 }
@@ -420,8 +474,8 @@ QMenuBar::item {
 }
 
 QMenuBar::item:selected {
-    background-color: #f1f3ff;
-    color: #3525cd;
+    background-color: #e5efff;
+    color: #164da8;
 }
 
 QMenu {
@@ -438,8 +492,8 @@ QMenu::item {
 }
 
 QMenu::item:selected {
-    background-color: #f1f3ff;
-    color: #3525cd;
+    background-color: #e5efff;
+    color: #164da8;
 }
 
 QMenu::separator {
@@ -526,8 +580,21 @@ QMainWindow[dark="true"] QWidget#VelaEditorArea {
 }
 
 QMainWindow[dark="true"] QWidget#VelaTopBar {
-    background-color: #0f0f0f;
-    border-bottom: 1px solid #2a2a2a;
+    background-color: #142033;
+    border-bottom: 1px solid #2a3c57;
+}
+QMainWindow[dark="true"] QLabel#VelaTopBarBrand {
+    color: #f2f7ff;
+}
+QMainWindow[dark="true"] QToolButton#VelaThemeButton {
+    background: #1c2d46;
+    border-color: #354b6a;
+    color: #eaf3ff;
+}
+QMainWindow[dark="true"] QToolButton#VelaThemeButton:hover,
+QMainWindow[dark="true"] QToolButton#VelaThemeButton:focus {
+    background: #254267;
+    border-color: #7caaff;
 }
 
 QMainWindow[dark="true"] QWidget#VelaTabStrip {
@@ -628,37 +695,30 @@ QMainWindow[dark="true"] QWidget#VelaPage {
     border: 1px solid #2a2a2a;
 }
 
-QMainWindow[dark="true"] QWidget#VelaWelcome {
-    background-color: #0f0f0f;
-}
-QMainWindow[dark="true"] QLabel#VelaWelcomeHero {
-    color: #f5f5f5;
-}
-QMainWindow[dark="true"] QLabel#VelaWelcomeTagline {
-    color: #a3a3a3;
+QMainWindow[dark="true"] QWidget#VelaWelcome,
+QMainWindow[dark="true"] QWidget#VelaWelcomeCanvas {
+    background: #101a2a;
 }
 QMainWindow[dark="true"] QLabel#VelaWelcomeSection {
-    color: #f5f5f5;
+    color: #ebf3ff;
 }
-QMainWindow[dark="true"] QPushButton#VelaTemplateCard {
-    background-color: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    color: #f5f5f5;
+QMainWindow[dark="true"] QFrame#VelaWelcomeRecent {
+    background: #162338;
+    border-color: #2a3c57;
 }
-QMainWindow[dark="true"] QPushButton#VelaTemplateCard:hover {
-    border-color: #818cf8;
-}
-QMainWindow[dark="true"] QWidget#VelaTemplateThumb {
-    background-color: #0f0f0f;
-    border: 1px solid #2a2a2a;
+QMainWindow[dark="true"] QLabel#VelaWelcomeEmpty {
+    color: #b0c2db;
 }
 QMainWindow[dark="true"] QPushButton#VelaRecentFileCard {
-    background-color: #1a1a1a;
-    border: 1px solid #2a2a2a;
-    color: #f5f5f5;
+    color: #e9f2ff;
 }
-QMainWindow[dark="true"] QPushButton#VelaRecentFileCard:hover {
-    border-color: #4a4a4a;
+QMainWindow[dark="true"] QPushButton#VelaRecentFileCard:hover,
+QMainWindow[dark="true"] QPushButton#VelaRecentFileCard:focus {
+    background: #203958;
+    border-color: #628dce;
+}
+QMainWindow[dark="true"] QPushButton#VelaRecentFileCard:pressed {
+    background: #27466d;
 }
 
 QMainWindow[dark="true"] QStatusBar {
@@ -714,12 +774,12 @@ QMainWindow[dark="true"] QPlainTextEdit:focus {
 }
 
 QMainWindow[dark="true"] QMenuBar {
-    background-color: #0f0f0f;
-    color: #f5f5f5;
+    background-color: transparent;
+    color: #edf5ff;
 }
 QMainWindow[dark="true"] QMenuBar::item:selected {
-    background-color: #262626;
-    color: #c3c0ff;
+    background-color: #254267;
+    color: #edf5ff;
 }
 QMainWindow[dark="true"] QMenu {
     background-color: #1a1a1a;

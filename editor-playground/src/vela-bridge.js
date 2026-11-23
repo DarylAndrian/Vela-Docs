@@ -139,7 +139,8 @@ class VelaBridge {
 
     // ── Convenience wrappers ────────────────────────────────────────────────
     getBody()          { return this.invoke('getBody'); }
-    setBody(body)      { return this.invoke('setBody', { body }); }
+    setBody(body, documentId) { return this.invoke('setBody', { body, documentId }); }
+    onActiveDocumentChanged(listener) { this._obj.activeDocumentChanged.connect(listener); }
     getStats()         { return this.invoke('getStats'); }
     getPlainText()     { return this.invoke('getPlainText'); }
     saveDocument(path) { return this.invoke('saveDocument', path ? { path } : {}); }

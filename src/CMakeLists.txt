@@ -25,6 +25,8 @@ set(VE_SOURCES
     app/RecentFiles.h
     app/EditorBridge.cpp
     app/EditorBridge.h
+    app/WelcomeView.cpp
+    app/WelcomeView.h
 
     # ── Document model & controller ──
     document/Document.cpp
@@ -111,6 +113,13 @@ set(VE_EDITOR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/editor")
 set(VE_RESOURCES
     vela_assets.qrc
 )
+if(WIN32)
+    set(VE_WINDOWS_RESOURCES "${CMAKE_CURRENT_BINARY_DIR}/vela_docs.rc")
+    configure_file(vela_docs.rc.in "${VE_WINDOWS_RESOURCES}" @ONLY)
+    list(APPEND VE_RESOURCES "${VE_WINDOWS_RESOURCES}")
+    set_source_files_properties("${VE_WINDOWS_RESOURCES}" PROPERTIES
+        OBJECT_DEPENDS "${CMAKE_SOURCE_DIR}/resources/icons/vela-docs.ico")
+endif()
 
 # ──────────────────────────────────────────────────────────────────────────
 # The main executable target

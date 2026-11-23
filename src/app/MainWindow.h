@@ -34,6 +34,7 @@ class Document;
 class RecentFiles;
 class EditorBridge;
 class LeftRail;
+class WelcomeView;
 class Backstage;
 class BackstagePanel;
 
@@ -99,8 +100,9 @@ private:
     void updateRecentFilesMenu();
     void showWelcomeView();
     void showEditorView();
+    void updateWorkspaceChrome();
+    void updateEditorAppearance();
     void setupWebChannel();
-    void openTemplate(const QString& templatePath);
 
     QPointer<DocumentController> m_controller;
     QPointer<EditorBridge>       m_bridge;
@@ -115,7 +117,7 @@ private:
     Sidebar*         m_sidebar     = nullptr;
     StatusBar*       m_statusBar   = nullptr;
     QStackedWidget*  m_centralStack = nullptr;
-    QWidget*         m_welcomeView  = nullptr;
+    WelcomeView*     m_welcomeView  = nullptr;
 
     // ── Editor surface ──
     QWebEngineView*  m_webView     = nullptr;
