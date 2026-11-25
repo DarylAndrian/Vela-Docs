@@ -141,6 +141,7 @@ class VelaBridge {
     getBody()          { return this.invoke('getBody'); }
     setBody(body, documentId) { return this.invoke('setBody', { body, documentId }); }
     onActiveDocumentChanged(listener) { this._obj.activeDocumentChanged.connect(listener); }
+    onDocumentClosed(listener) { this._obj.documentClosed.connect(listener); }
     getStats()         { return this.invoke('getStats'); }
     getPlainText()     { return this.invoke('getPlainText'); }
     saveDocument(path) { return this.invoke('saveDocument', path ? { path } : {}); }

@@ -111,16 +111,21 @@ void WelcomeView::setRecentFiles(const QStringList& paths)
 
     const QIcon icon(QStringLiteral(":/icons/vela-docs.png"));
     for (const auto& path : paths.first(qMin(5, paths.size()))) {
-        const QString name = QFileInfo(path).fileName();
-        auto* button = new QPushButton(icon, name, this);
+        const QFileInfo info(path);
+        const QString label = tr("%1 — %2").arg(info.fileName(), info.absolutePath());
+        auto* button = new QPushButton(icon, label, this);
         button->setObjectName(QStringLiteral("VelaRecentFileCard"));
         button->setIconSize(QSize(22, 22));
         button->setCursor(Qt::PointingHandCursor);
         button->setToolTip(path);
-        button->setAccessibleName(name);
+        button->setAccessibleName(label);
         m_recentFilesLayout->addWidget(button);
         button->ensurePolished();
-        button->setText(button->fontMetrics().elidedText(name, Qt::ElideMiddle, 560));
+        const auto metrics = button->fontMetrics();
+        const QString fileName = metrics.elidedText(info.fileName(), Qt::ElideMiddle, 255);
+        const QString folder = metrics.elidedText(info.absolutePath(), Qt::ElideMiddle, 285);
+        QString display = tr("%1 — %2").arg(fileName, folder);
+        button->setText(display.replace(QLatin1Char('&'), QStringLiteral("&&")));
         connect(button, &QPushButton::clicked, this, [this, path] {
             emit recentRequested(path);
         });

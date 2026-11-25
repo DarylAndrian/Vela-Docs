@@ -8,7 +8,6 @@
 #include "util/Logger.h"
 
 #include <QFileInfo>
-#include <QSaveFile>
 
 namespace vela {
 
@@ -38,12 +37,6 @@ bool DocumentController::openDocument(const QString& filePath)
 
     const QString suffix = info.suffix().toLower();
 
-    // Close current document first (no save prompt here — host handles it)
-    if (m_activeDocument) {
-        m_activeDocument->deleteLater();
-        m_activeDocument = nullptr;
-    }
-
     if (suffix == QLatin1String("docx")) {
         // Phase 1: real OOXML parsing
         QJsonObject body;
@@ -65,7 +58,7 @@ bool DocumentController::openDocument(const QString& filePath)
         return true;
     }
 
-    emit errorOccurred(tr("Format '.%1' support lands in Phase 4.").arg(suffix));
+    emit errorOccurred(tr("Choose a Word document with the .docx file extension."));
     return false;
 }
 
@@ -91,21 +84,27 @@ bool DocumentController::saveDocument(const QString& filePath)
         return true;
     }
 
-    emit errorOccurred(tr("Save in '.%1' format comes in Phase 1/4.").arg(suffix));
+    emit errorOccurred(tr("Choose the .docx file extension to save this document."));
     return false;
 }
 
 void DocumentController::closeActiveDocument()
 {
-    if (m_activeDocument) {
-        m_activeDocument->deleteLater();
-        setActiveDocument(nullptr);
-    }
+    setActiveDocument(nullptr);
 }
 
 void DocumentController::newDocument()
 {
+    restoreDraft({});
+}
+
+void DocumentController::restoreDraft(const QJsonObject& body)
+{
     auto* doc = new Document(this);
+    if (!body.isEmpty()) {
+        doc->setBody(body);
+        doc->setDirty(true);
+    }
     connect(doc, &Document::dirtyChanged,
             this, &DocumentController::dirtyStateChanged);
     connect(doc, &Document::bodyChanged, this, [doc]() {
@@ -127,6 +126,10 @@ void DocumentController::redo()
 void DocumentController::setActiveDocument(Document* doc)
 {
     if (m_activeDocument == doc) return;
+    if (m_activeDocument) {
+        disconnect(m_activeDocument, nullptr, this, nullptr);
+        m_activeDocument->deleteLater();
+    }
     m_activeDocument = doc;
     emit activeDocumentChanged();
     emit dirtyStateChanged(doc && doc->isDirty());

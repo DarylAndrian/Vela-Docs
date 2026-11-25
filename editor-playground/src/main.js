@@ -68,7 +68,7 @@ import { CustomStyle } from './extensions/custom-style.js';
 import { PageBreak } from './extensions/page-break.js';
 import FindReplace, { getSearchState } from './extensions/find-replace.js';
 import { mountPagination } from './extensions/pagination.js';
-import { loadSettings, applySettings, registerPageSettingsBridge } from './page-settings.js';
+import { loadDocumentSettings, loadSettings, applySettings, registerPageSettingsBridge } from './page-settings.js';
 
 import { mountBackstage } from './backstage.js';
 import { mountWelcome } from './welcome.js';
@@ -167,6 +167,8 @@ const editor = new Editor({
         TabStopPlugin({ pageWidthInches: 8.5, marginLeftInches: 1.0, marginRightInches: 1.0 }),
     ],
     content: nativeEditor ? '' : sampleDoc,
+    editable: !nativeEditor,
+    editorProps: { attributes: { role: 'textbox', 'aria-label': 'Document', 'aria-multiline': 'true', spellcheck: 'true' } },
     onUpdate: () => { updateStats(); updateTableButtons(); syncRulerWithEditor(); },
     onSelectionUpdate: () => { updateActiveStates(); updateTableButtons(); updateCellCoords(); updateStyleDropdownLabel(); syncRulerWithEditor(); },
 });
@@ -253,10 +255,10 @@ window.__findBar = (() => {
         findInput.select();
         search();
     };
-    const close = () => {
+    const close = (restoreFocus = true) => {
         bar.hidden = true;
         editor.commands.clearSearch();
-        editor.commands.focus();
+        if (restoreFocus) editor.commands.focus();
     };
 
     findInput.addEventListener('input', search);
@@ -319,31 +321,76 @@ velaBridge.connect().then(async () => {
 
     let pushTimer = 0;
     let documentId = null;
+    let generation = 0;
+    let revision = 0;
+    let synchronizedRevision = 0;
+    let layoutEdited = false;
+    const openEditors = new Map();
+    const serializeBody = () => {
+        const body = editor.getJSON();
+        if (layoutEdited) body._vela = { pageSettings: loadSettings() };
+        return body;
+    };
+    window.__velaEditorSnapshot = () => {
+        if (documentId === null) return { loading: true };
+        const snapshot = { documentId, pageSettings: loadSettings() };
+        if (synchronizedRevision !== revision) snapshot.body = serializeBody();
+        return snapshot;
+    };
     const showDocument = (body, id) => {
+        if (documentId && documentId !== id) {
+            window.__findBar?.close(false);
+            openEditors.set(documentId, editor.state);
+        }
         clearTimeout(pushTimer);
         documentId = id;
-        editor.commands.setContent(body?.content?.length ? body : '', false);
-        const { doc, schema, plugins } = editor.state;
-        editor.view.updateState(EditorState.create({ doc, schema, plugins }));
+        generation += 1;
+        revision = 0;
+        synchronizedRevision = 0;
+        layoutEdited = false;
+        const saved = openEditors.get(id);
+        if (saved) {
+            editor.view.updateState(saved.reconfigure({ plugins: editor.state.plugins }));
+            openEditors.delete(id);
+        } else {
+            editor.commands.setContent(body?.content?.length ? body : '', false);
+            const { doc, schema, plugins } = editor.state;
+            editor.view.updateState(EditorState.create({ doc, schema, plugins }));
+        }
+        editor.setEditable(Boolean(id), false);
+        const settings = loadDocumentSettings(body?._vela, () => {
+            layoutEdited = true;
+            scheduleSync();
+        });
+        applySettings(pagination, settings);
+        syncPageControls(settings);
+        if (id) editor.commands.focus(saved ? undefined : 'start');
+        window.__velaRefreshOutline?.();
         updateStats();
         updateActiveStates();
         updateTableButtons();
         syncRulerWithEditor();
     };
 
-    velaBridge.onActiveDocumentChanged(showDocument);
-    editor.on('update', () => {
+    const scheduleSync = () => {
         if (!documentId) return;
         clearTimeout(pushTimer);
         const editedDocumentId = documentId;
+        const editedGeneration = generation;
+        const editedRevision = ++revision;
         pushTimer = setTimeout(() => {
-            velaBridge.setBody(editor.getJSON(), editedDocumentId).then((r) => {
-                if (!r.ok && documentId === editedDocumentId) {
+            velaBridge.setBody(serializeBody(), editedDocumentId).then((r) => {
+                if (documentId !== editedDocumentId || generation !== editedGeneration) return;
+                if (r.ok) synchronizedRevision = Math.max(synchronizedRevision, editedRevision);
+                else {
                     console.warn('[vela-bridge] setBody failed:', r.error);
                 }
             });
         }, 400);
-    });
+    };
+    velaBridge.onActiveDocumentChanged(showDocument);
+    velaBridge.onDocumentClosed((id) => openEditors.delete(id));
+    editor.on('update', scheduleSync);
 
     const loaded = await velaBridge.getBody();
     if (documentId === null && loaded.ok) showDocument(loaded.body, loaded.documentId);
@@ -354,13 +401,47 @@ velaBridge.connect().then(async () => {
 // 'pageless' (preserves the legacy infinite-scroll experience); switching to
 // 'paging' enables true A4 auto-flow pagination.
 const pagination = mountPagination(editor);
-registerPageSettingsBridge(pagination, (s) => {
-    // Refresh the Format tab's mode toggle if visible.
-    document.querySelectorAll('[data-cmd="setPageMode"]').forEach((b) =>
-        b.classList.toggle('is-active', b.dataset.arg === s.mode));
-});
+function syncPageControls(settings) {
+    for (const [command, value] of [['setPageMode', settings.mode], ['setOrientation', settings.orientation]]) {
+        document.querySelectorAll(`[data-cmd="${command}"]`).forEach((button) => {
+            const selected = button.dataset.arg === value;
+            button.classList.toggle('is-active', selected);
+            button.setAttribute('aria-pressed', String(selected));
+        });
+    }
+    const paper = document.getElementById('page-size-select');
+    if (paper) {
+        paper.value = settings.size;
+        paper.dispatchEvent(new Event('vela:refresh-select'));
+    }
+}
+registerPageSettingsBridge(pagination, syncPageControls);
+window.__velaPreparePrint = () => {
+    const settings = loadSettings();
+    let style = document.getElementById('vela-print-settings');
+    if (!style) {
+        style = document.createElement('style');
+        style.id = 'vela-print-settings';
+        document.head.append(style);
+    }
+    const format = { upperRoman: 'upper-roman', lowerRoman: 'lower-roman',
+        upperAlpha: 'upper-alpha', lowerAlpha: 'lower-alpha' }[settings.pageNumberFormat] || 'decimal';
+    const text = (value) => (value || '').split(/(\{PAGE\}|\{NUMPAGES\})/).map((part) => {
+        if (part === '{PAGE}') return `counter(page, ${format})`;
+        if (part === '{NUMPAGES}') return 'counter(pages)';
+        return JSON.stringify(part.replace(/[\r\n\f]/g, ' '));
+    }).join(' ');
+    const start = Math.max(1, Number.parseInt(settings.pageNumberStartAt, 10) || 1);
+    style.textContent = `@page {
+        @top-center { content: ${text(settings.headerText)}; font-size: 10pt; }
+        @bottom-center { content: ${text(settings.footerText)}; font-size: 10pt; }
+    }
+    @page :first { counter-reset: page ${start}; ${settings.differentFirstPage ?
+        '@top-center { content: none; } @bottom-center { content: none; }' : ''} }`;
+    return settings;
+};
 const initialSettings = loadSettings();
-if (initialSettings.mode === 'paging') applySettings(pagination, initialSettings);
+if (!nativeEditor && initialSettings.mode === 'paging') applySettings(pagination, initialSettings);
 window.__velaPagination = pagination;
 
 // ── Style manager (seed built-ins + load custom) ─────────────────────────
@@ -429,9 +510,11 @@ function updateActiveStates() {
                     if (c) updateSwatchBar(btn, c);
                     break;
                 }
+                default: return;
             }
         } catch (_) { /* not ready */ }
         btn.classList.toggle('is-active', active);
+        btn.setAttribute('aria-pressed', String(active));
     });
 }
 
@@ -738,27 +821,19 @@ async function execCommand(cmd, arg) {
 
         // ── Insert ──
         case 'openInsertTable': {
-            // v0.4.2 — the grid picker handles this automatically; the command
-            // is here for keyboard shortcuts (Ctrl+Shift+K inserts default 3×3).
-            insertTableAtCursor(3, 3);
+            switchTab('insert');
+            document.getElementById('btn-insert-table')?.click();
             break;
         }
         case 'openInsertImage': {
             const result = await openInsertImage();
             if (result && result.url) {
-                editor.chain().focus().setImage({ src: result.url }).run();
+                editor.chain().focus().setImage({ src: result.url, alt: result.alt }).run();
             }
             break;
         }
         case 'pageBreak': editor.chain().focus().setPageBreak().run(); break;
         case 'hr': chain.setHorizontalRule().run(); break;
-        case 'footnote': {
-            editor.chain().focus().insertContent({
-                type: 'text', text: '[*]',
-                marks: [{ type: 'highlight' }],
-            }).run();
-            break;
-        }
         case 'insertChar': {
             if (arg) editor.chain().focus().insertContent(arg).run();
             break;
@@ -821,8 +896,7 @@ async function execCommand(cmd, arg) {
             // arg: 'paging' | 'pageless'
             const s = { ...loadSettings(), mode: arg };
             applySettings(pagination, s);
-            document.querySelectorAll('[data-cmd="setPageMode"]').forEach((b) =>
-                b.classList.toggle('is-active', b.dataset.arg === arg));
+            syncPageControls(s);
             flashStatus(arg === 'paging' ? '✓ Paging view (A4)' : '✓ Pageless view');
             break;
         }
@@ -830,8 +904,7 @@ async function execCommand(cmd, arg) {
             // arg: 'portrait' | 'landscape'
             const s = { ...loadSettings(), orientation: arg };
             applySettings(pagination, s);
-            document.querySelectorAll('[data-cmd="setOrientation"]').forEach((b) =>
-                b.classList.toggle('is-active', b.dataset.arg === arg));
+            syncPageControls(s);
             flashStatus(`✓ ${arg === 'landscape' ? 'Landscape' : 'Portrait'}`);
             break;
         }
@@ -839,8 +912,7 @@ async function execCommand(cmd, arg) {
             // arg: 'A4' | 'Letter' | 'Legal' | 'Tabloid'
             const s = { ...loadSettings(), size: arg };
             applySettings(pagination, s);
-            document.querySelectorAll('[data-cmd="setPageSize"]').forEach((b) =>
-                b.classList.toggle('is-active', b.dataset.arg === arg));
+            syncPageControls(s);
             flashStatus(`✓ Paper size: ${arg}`);
             break;
         }
@@ -850,9 +922,7 @@ async function execCommand(cmd, arg) {
             break;
         }
         case 'openPageSetup': {
-            // Defer to native dialog when running under Qt; otherwise a future
-            // web modal. For now, flip to Format tab.
-            switchTab('format');
+            if (velaBridge.isNative) velaBridge.invoke('openPageSetup');
             break;
         }
 
@@ -1151,16 +1221,89 @@ document.addEventListener('keydown', (e) => {
 
 // ── Ribbon tab switching ──────────────────────────────────────────────────
 function switchTab(name) {
-    document.querySelectorAll('.ribbon-tab').forEach((t) =>
-        t.classList.toggle('is-active', t.dataset.tab === name));
+    ribbonTabs.forEach((tab) => {
+        const active = tab.dataset.tab === name;
+        tab.classList.toggle('is-active', active);
+        tab.setAttribute('aria-selected', String(active));
+        tab.tabIndex = active ? 0 : -1;
+    });
     document.querySelectorAll('.tab-panel').forEach((p) => {
         const match = p.dataset.panel === name;
         p.hidden = !match;
     });
 }
-document.querySelectorAll('.ribbon-tab').forEach((tab) => {
+const ribbonTabs = [...document.querySelectorAll('.ribbon-tab')];
+document.querySelector('.ribbon-tabs')?.setAttribute('role', 'tablist');
+ribbonTabs.forEach((tab, index) => {
+    const panel = document.querySelector(`[data-panel="${tab.dataset.tab}"]`);
+    tab.id ||= `ribbon-${tab.dataset.tab}`;
+    tab.setAttribute('role', 'tab');
+    if (panel) {
+        panel.id ||= `${tab.dataset.tab}-panel`;
+        panel.setAttribute('role', 'tabpanel');
+        panel.setAttribute('aria-labelledby', tab.id);
+        tab.setAttribute('aria-controls', panel.id);
+    }
     tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+    tab.addEventListener('keydown', (event) => {
+        let next;
+        switch (event.key) {
+            case 'ArrowLeft': next = (index + ribbonTabs.length - 1) % ribbonTabs.length; break;
+            case 'ArrowRight': next = (index + 1) % ribbonTabs.length; break;
+            case 'Home': next = 0; break;
+            case 'End': next = ribbonTabs.length - 1; break;
+            default: return;
+        }
+        event.preventDefault();
+        switchTab(ribbonTabs[next].dataset.tab);
+        ribbonTabs[next].focus();
+    });
 });
+if (ribbonTabs.length) switchTab(ribbonTabs.find((tab) => tab.classList.contains('is-active'))?.dataset.tab ?? 'home');
+document.querySelectorAll('button[title]').forEach((button) => {
+    if (!button.hasAttribute('aria-label')) button.setAttribute('aria-label', button.title);
+});
+document.querySelectorAll('.ms').forEach((icon) => icon.setAttribute('aria-hidden', 'true'));
+
+if (nativeEditor) {
+    const outline = document.createElement('aside');
+    outline.className = 'vela-outline';
+    outline.setAttribute('aria-label', 'Document outline');
+    outline.hidden = true;
+    const title = document.createElement('h2');
+    title.textContent = 'Document outline';
+    const headings = document.createElement('ul');
+    outline.append(title, headings);
+    document.body.append(outline);
+
+    const refresh = () => {
+        if (outline.hidden) return;
+        headings.replaceChildren();
+        editor.state.doc.descendants((node, position) => {
+            if (node.type.name !== 'heading' || !node.textContent.trim()) return;
+            const row = document.createElement('li');
+            const jump = document.createElement('button');
+            jump.textContent = node.textContent;
+            jump.setAttribute('aria-label', `Heading ${node.attrs.level}: ${node.textContent}`);
+            jump.style.paddingInlineStart = `${8 + (node.attrs.level - 1) * 11}px`;
+            jump.addEventListener('click', () => editor.chain().focus().setTextSelection(position + 1).scrollIntoView().run());
+            row.append(jump);
+            headings.append(row);
+        });
+        if (!headings.children.length) {
+            const empty = document.createElement('li');
+            empty.textContent = 'Apply a heading style to show it here.';
+            headings.append(empty);
+        }
+    };
+    window.__velaRefreshOutline = refresh;
+    window.__velaToggleOutline = (visible) => {
+        outline.hidden = !visible;
+        document.body.classList.toggle('vela-show-outline', visible);
+        refresh();
+    };
+    editor.on('update', refresh);
+}
 
 // ── Font selectors ────────────────────────────────────────────────────────
 const fontSelect = document.getElementById('font-family');
@@ -1253,6 +1396,7 @@ function upgradeToolbarSelect(select) {
     });
     select.addEventListener('mousedown', (e) => e.preventDefault());
     select.addEventListener('change', syncLabel);
+    select.addEventListener('vela:refresh-select', syncLabel);
 
     trigger.append(label, caret);
     select.hidden = true;

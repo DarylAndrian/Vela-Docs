@@ -2,6 +2,7 @@
 //  EditorBridge.cpp — Async bridge (v0.3.1 — CRIT-06)
 // ════════════════════════════════════════════════════════════════════════════
 #include "app/EditorBridge.h"
+#include "app/MainWindow.h"
 
 #include "document/DocumentController.h"
 #include "document/Document.h"
@@ -46,7 +47,6 @@ QVariantMap executeLocal(const QString& cmd, const QVariantMap& args,
         }
     } else if (cmd == "saveDocumentAs") {
         const QString path = args.value("path").toString();
-        if (active) active->setFilePath(path);
         r["ok"] = dc->saveDocument(path);
     } else if (cmd == "newDocument") {
         dc->newDocument();
@@ -72,7 +72,13 @@ QVariantMap executeLocal(const QString& cmd, const QVariantMap& args,
             r["ok"] = false;
             r["error"] = QStringLiteral("active document changed");
         } else {
-            active->setBody(QJsonObject::fromVariantMap(args.value("body").toMap()));
+            auto body = QJsonObject::fromVariantMap(args.value("body").toMap());
+            auto metadata = active->body().value(QStringLiteral("_vela")).toObject();
+            const auto edits = body.value(QStringLiteral("_vela")).toObject();
+            for (auto it = edits.constBegin(); it != edits.constEnd(); ++it)
+                metadata.insert(it.key(), it.value());
+            if (!metadata.isEmpty()) body.insert(QStringLiteral("_vela"), metadata);
+            active->setBody(body);
             r["ok"] = true;
         }
     } else if (cmd == "getPlainText") {
@@ -112,16 +118,8 @@ QVariantMap executeLocal(const QString& cmd, const QVariantMap& args,
 
 EditorBridge::EditorBridge(DocumentController* controller, QObject* parent)
     : QObject(parent)
-    , m_controller(controller)
 {
-    if (m_controller) {
-        connect(m_controller, &DocumentController::activeDocumentChanged, this, [this] {
-            const auto* active = m_controller->activeDocument();
-            emit activeDocumentChanged(
-                active ? active->body().toVariantMap() : QVariantMap{},
-                active ? active->id() : QString{});
-        });
-    }
+    bindController(controller);
 
     // Single 100 ms ticker — we use it as a sweeping mechanism for the watchdog.
     m_watchdog.setSingleShot(false);
@@ -148,6 +146,22 @@ EditorBridge::EditorBridge(DocumentController* controller, QObject* parent)
     m_watchdog.start();
 }
 
+void EditorBridge::bindController(DocumentController* controller)
+{
+    disconnect(m_documentConnection);
+    m_controller = controller;
+    if (controller) m_documentConnection = connect(controller, &DocumentController::activeDocumentChanged,
+                                                  this, &EditorBridge::publishActiveDocument);
+    publishActiveDocument();
+}
+
+void EditorBridge::publishActiveDocument()
+{
+    const auto* active = m_controller ? m_controller->activeDocument() : nullptr;
+    emit activeDocumentChanged(active ? active->body().toVariantMap() : QVariantMap{},
+                               active ? active->id() : QString{});
+}
+
 void EditorBridge::registerOnPage(QObject* webChannel)
 {
     auto* ch = qobject_cast<QWebChannel*>(webChannel);
@@ -170,7 +184,29 @@ qint64 EditorBridge::invokeCommand(const QString& command, const QVariantMap& ar
     // Resolved synchronously on the C++ side and posted back through
     // commandResult so JS can `await` it. The watchdog stays armed as a safety
     // net for commands that a future async path fails to complete.
-    const QVariantMap payload = executeLocal(command, args, m_controller, m_session);
+    QVariantMap payload;
+    if (command == QStringLiteral("openPageSetup")) {
+        emit pageSetupRequested();
+        payload.insert(QStringLiteral("ok"), true);
+    } else if (auto* window = qobject_cast<MainWindow*>(parent()); window &&
+        (command == QLatin1String("openDocument") || command == QLatin1String("newDocument")
+         || command == QLatin1String("closeDocument") || command == QLatin1String("saveDocument")
+         || command == QLatin1String("saveDocumentAs"))) {
+        const QString path = args.value(QStringLiteral("path")).toString();
+        const auto* previous = m_controller ? m_controller->activeDocument() : nullptr;
+        bool ok;
+        if (command == QLatin1String("openDocument")) ok = !path.isEmpty() && window->openDocument(path);
+        else if (command == QLatin1String("saveDocument")) ok = path.isEmpty() ? window->saveDocument() : window->saveDocumentTo(path);
+        else if (command == QLatin1String("saveDocumentAs")) ok = path.isEmpty() ? window->saveDocumentAs() : window->saveDocumentTo(path);
+        else {
+            if (command == QLatin1String("newDocument")) window->newDocument();
+            else window->closeDocument();
+            ok = previous != (m_controller ? m_controller->activeDocument() : nullptr);
+        }
+        payload.insert(QStringLiteral("ok"), ok);
+    } else {
+        payload = executeLocal(command, args, m_controller, m_session);
+    }
     const bool ok = payload.value(QStringLiteral("ok"), true).toBool();
     completeRequest(u, ok, payload);
     return id;
@@ -193,12 +229,14 @@ void EditorBridge::watchdogFired(QUuid) { /* wired above via lambda */ }
 // ─── Legacy slot implementations ───────────────────────────────────────────
 bool EditorBridge::openDocument(const QString& path)
 {
+    if (auto* window = qobject_cast<MainWindow*>(parent())) return window->openDocument(path);
     if (!m_controller) return false;
     return m_controller->openDocument(path);
 }
 
 bool EditorBridge::saveDocument()
 {
+    if (auto* window = qobject_cast<MainWindow*>(parent())) return window->saveDocument();
     if (!m_controller || !m_controller->activeDocument()) return false;
     const QString path = m_controller->activeDocument()->filePath();
     if (path.isEmpty()) return false;      // untitled — caller must use saveDocumentAs
@@ -207,20 +245,22 @@ bool EditorBridge::saveDocument()
 
 bool EditorBridge::saveDocumentAs(const QString& path)
 {
+    if (auto* window = qobject_cast<MainWindow*>(parent()))
+        return path.isEmpty() ? window->saveDocumentAs() : window->saveDocumentTo(path);
     if (!m_controller) return false;
-    if (m_controller->activeDocument())
-        m_controller->activeDocument()->setFilePath(path);
     return m_controller->saveDocument(path);
 }
 
 void EditorBridge::newDocument()
 {
-    if (m_controller) m_controller->newDocument();
+    if (auto* window = qobject_cast<MainWindow*>(parent())) window->newDocument();
+    else if (m_controller) m_controller->newDocument();
 }
 
 void EditorBridge::closeDocument()
 {
-    if (m_controller) m_controller->closeActiveDocument();
+    if (auto* window = qobject_cast<MainWindow*>(parent())) window->closeDocument();
+    else if (m_controller) m_controller->closeActiveDocument();
 }
 
 QVariantMap EditorBridge::getBody() const
@@ -231,9 +271,8 @@ QVariantMap EditorBridge::getBody() const
 
 bool EditorBridge::setBody(const QVariantMap& body)
 {
-    if (!m_controller || !m_controller->activeDocument()) return false;
-    m_controller->activeDocument()->setBody(QJsonObject::fromVariantMap(body));
-    return true;
+    return executeLocal(QStringLiteral("setBody"), {{QStringLiteral("body"), body}},
+                        m_controller, m_session).value(QStringLiteral("ok")).toBool();
 }
 
 QString     EditorBridge::getHtml() const            { return {}; }

@@ -38,6 +38,8 @@ public:
 
     /// Bind to a TabSession (v0.3.1 multi-tab support).
     void bindSession(TabSession* session) { m_session = session; }
+    void bindController(DocumentController* controller);
+    void forgetDocument(const QString& id) { emit documentClosed(id); }
 
     /// Connect to a QWebEnginePage's QWebChannel.
     Q_INVOKABLE void registerOnPage(QObject* webChannel);
@@ -87,6 +89,8 @@ signals:
     /// JS reported an exception.
     void errorReported(const QString& where, const QString& message);
     void activeDocumentChanged(const QVariantMap& body, const QString& documentId);
+    void documentClosed(const QString& documentId);
+    void pageSetupRequested();
 
     // Legacy — body / document state events.
     void bodyChanged(const QVariantMap& body);
@@ -111,9 +115,11 @@ private:
     qint64 m_nextId = 1;
 
     void completeRequest(QUuid id, bool ok, const QVariantMap& payload);
+    void publishActiveDocument();
 
     DocumentController* m_controller = nullptr;
     TabSession*         m_session    = nullptr;
+    QMetaObject::Connection m_documentConnection;
 };
 
 } // namespace vela

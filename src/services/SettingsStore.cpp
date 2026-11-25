@@ -43,6 +43,17 @@ void SettingsStore::setSpellLanguage(SpellLanguage l)
     emit settingsChanged();
 }
 
+bool SettingsStore::spellCheckEnabled() const
+{
+    return m_settings->value(QStringLiteral("editor/spellCheck"), true).toBool();
+}
+
+void SettingsStore::setSpellCheckEnabled(bool enabled)
+{
+    m_settings->setValue(QStringLiteral("editor/spellCheck"), enabled);
+    emit settingsChanged();
+}
+
 QByteArray SettingsStore::windowGeometry() const
 {
     return m_settings->value(QStringLiteral("window/geometry")).toByteArray();

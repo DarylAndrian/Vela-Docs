@@ -7,14 +7,17 @@
 #include <QMainWindow>
 #include <QString>
 #include <QPointer>
+#include <QTemporaryDir>
 
 // QPointer<T> needs T to be complete, so these two cannot stay forward-declared.
 #include "document/DocumentController.h"
 #include "app/EditorBridge.h"
+#include "services/DraftRecovery.h"
 
 class QAction;
 class QMenu;
 class QMenuBar;
+class QPageLayout;
 class QToolBar;
 class QStatusBar;
 class QLabel;
@@ -27,6 +30,7 @@ namespace vela {
 
 class Ribbon;
 class TabBar;
+class TabSession;
 class Sidebar;
 class StatusBar;
 class DocumentController;
@@ -48,6 +52,7 @@ public:
     bool openDocument(const QString& filePath);
     bool saveDocument();
     bool saveDocumentAs();
+    void exportDocumentToPdf(const QString& path, bool preview = false);
 
 public slots:
     void newDocument();
@@ -77,7 +82,6 @@ protected:
     void dropEvent(QDropEvent* event) override;
 
 private slots:
-    void onActiveDocumentChanged();
     void onDirtyStateChanged(bool dirty);
     void onLeftRailViewActivated(int view);
     void onLeftRailViewDeactivated(int view);
@@ -85,6 +89,7 @@ private slots:
     void onEditorStatsChanged(int words, int characters, int pages);
 
 private:
+    friend class EditorBridge;
     void buildActions();
     void buildMenuBar();
     void buildTopBar();
@@ -96,6 +101,20 @@ private:
     void buildEditorArea();
     void buildBackstage();          // v0.4.0 — new
     void wireSignals();
+    bool synchronizeEditor(QJsonObject* pageSettings = nullptr, bool reportFailure = true);
+    bool confirmDocumentClose(TabSession* session, const QString& prompt);
+    TabSession* createSession();
+    void addSession(TabSession* session);
+    void activateSession(TabSession* session);
+    void closeSession(TabSession* session);
+    QString currentFile() const;
+    bool saveDocumentTo(const QString& path);
+    void openRecentDocument(const QString& path);
+    void backUpDraft();
+    void offerDraftRecovery();
+    void clearBackup(TabSession* session);
+    bool preparePrintLayout(QPageLayout& layout);
+    void printDocument();
     void updateWindowTitle();
     void updateRecentFilesMenu();
     void showWelcomeView();
@@ -105,12 +124,14 @@ private:
     void setupWebChannel();
 
     QPointer<DocumentController> m_controller;
+    TabSession*                  m_session = nullptr;
     QPointer<EditorBridge>       m_bridge;
     RecentFiles*                 m_recentFiles = nullptr;
 
     // ── UI components ──
     QMenuBar*        m_menuBar     = nullptr;
     QWidget*         m_topBar      = nullptr;
+    QLabel*          m_documentStatus = nullptr;
     TabBar*          m_tabBar      = nullptr;
     LeftRail*        m_leftRail    = nullptr;
     Ribbon*          m_ribbon      = nullptr;
@@ -154,7 +175,6 @@ private:
     QAction* m_actInsertLink           = nullptr;
     QAction* m_actInsertPageBreak      = nullptr;
     QAction* m_actInsertHorizontalRule = nullptr;
-    QAction* m_actInsertFootnote       = nullptr;
 
     // ── Format ──
     QAction* m_actBold              = nullptr;
@@ -199,11 +219,13 @@ private:
 
     // ── View / Output / Tools / Help ──
     QAction* m_actFocusMode     = nullptr;
+    QAction* m_actOutline       = nullptr;
     QAction* m_actDarkMode      = nullptr;
     QAction* m_actZoomIn        = nullptr;
     QAction* m_actZoomOut       = nullptr;
     QAction* m_actZoomReset     = nullptr;
     QAction* m_actPrint         = nullptr;
+    QAction* m_actPrintPreview  = nullptr;
     QAction* m_actExportPdf     = nullptr;
     QAction* m_actPreferences   = nullptr;
     QAction* m_actWordCount     = nullptr;
@@ -217,7 +239,13 @@ private:
 
     bool    m_focusMode = false;
     bool    m_darkMode  = false;
-    QString m_currentFile;
+    bool    m_waitingForEditor = false;
+    bool    m_saving = false;
+    bool    m_printing = false;
+    DraftRecovery m_draftRecovery;
+    QHash<QString, QString> m_recoveredNames;
+    QTemporaryDir m_printPreviews;
+    int m_previewNumber = 0;
 };
 
 } // namespace vela

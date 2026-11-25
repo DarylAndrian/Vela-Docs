@@ -37,6 +37,7 @@ public:
     static std::unique_ptr<TabSession> create(const QString& path = QString());
     /// Load from a file on disk; returns nullptr on failure.
     static std::unique_ptr<TabSession> open(const QString& path);
+    bool load(const QString& path);
 
     /// Identity.
     QUuid id() const { return m_id; }

@@ -48,6 +48,7 @@ public:
     TabSession* sessionAt(int index) const;
     /// The tab index showing `session`, or -1.
     int indexOfSession(TabSession* session) const;
+    void setManagedClose(bool enabled) { m_managedClose = enabled; }
 
 signals:
     void newTabRequested();
@@ -64,6 +65,7 @@ private:
     void refreshTab(int index);
 
     QAction* m_addAction = nullptr;
+    bool m_managedClose = false;
     QHash<QWidget*, TabSession*> m_sessions;
 };
 

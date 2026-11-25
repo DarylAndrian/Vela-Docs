@@ -1,24 +1,5 @@
-# Dictionaries
+# Spell-check dictionaries
 
-Hunspell `.aff` + `.dic` files for spell-check.
+`en-US.bdic` is the [Chromium English (US) dictionary](https://chromium.googlesource.com/chromium/deps/hunspell_dictionaries/+/refs/heads/main/en-US-10-2.bdic), distributed here with its upstream notices. SHA-256 `b0d80e6b6c5491879365e176ecbd98074602a663429bcfcfb0a5a8375c051f13`.
 
-Phase 0: empty.
-Phase 2: we'll bundle `en_US`, `en_GB`, `es_ES`, `fr_FR`, `de_DE`.
-
-Download from https://github.com/wooorm/dictionaries or
-https://cgit.freedesktop.org/libreoffice/dictionaries/
-
-Expected filenames once Phase 2 lands:
-
-```
-en_US.aff
-en_US.dic
-en_GB.aff
-en_GB.dic
-es_ES.aff
-es_ES.dic
-fr_FR.aff
-fr_FR.dic
-de_DE.aff
-de_DE.dic
-```
+The Windows build copies the dictionary into `qtwebengine_dictionaries` beside the executable. Vela Docs uses Qt WebEngine's spelling suggestions and works offline with the bundled dictionary.

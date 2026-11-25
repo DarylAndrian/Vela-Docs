@@ -8,11 +8,13 @@
 #include "util/Logger.h"
 
 #include <QDir>
+#include <QAccessibilityHints>
 #include <QFile>
 #include <QFontDatabase>
 #include <QIcon>
 #include <QStandardPaths>
 #include <QStyleFactory>
+#include <QStyleHints>
 #include <QSurfaceFormat>
 
 namespace vela {
@@ -42,6 +44,8 @@ Application::Application(int& argc, char** argv)
 
     registerQtResources();
     loadApplicationStyle();
+    connect(styleHints()->accessibility(), &QAccessibilityHints::contrastPreferenceChanged,
+            this, &Application::loadApplicationStyle);
 
     m_settings = new SettingsStore(this);
     m_revisions = new RevisionStore(dataDirectory() + QStringLiteral("/revisions.db"), this);
@@ -61,6 +65,10 @@ void Application::registerQtResources()
 
 void Application::loadApplicationStyle()
 {
+    if (styleHints()->accessibility()->contrastPreference() == Qt::ContrastPreference::HighContrast) {
+        setStyleSheet({});
+        return;
+    }
     // Use Fusion as base for consistent native-feeling rendering
     if (QStyleFactory::keys().contains(QStringLiteral("Fusion"))) {
         setStyle(QStringLiteral("Fusion"));

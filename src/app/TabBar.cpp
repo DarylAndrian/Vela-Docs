@@ -4,10 +4,11 @@
 #include "app/TabBar.h"
 
 #include "document/TabSession.h"
+#include "ui/dialogs/SaveChangesDialog.h"
 
 #include <QAction>
 #include <QApplication>
-#include <QMessageBox>
+#include <QSignalBlocker>
 #include <QStyle>
 #include <QToolButton>
 #include <QWidget>
@@ -23,6 +24,7 @@ TabBar::TabBar(QWidget* parent)
     setDocumentMode(true);
     setElideMode(Qt::ElideRight);
     setUsesScrollButtons(true);
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     setIconSize(QSize(16, 16));
 
     // "+" button in the top-right corner of the strip.
@@ -48,7 +50,12 @@ int TabBar::addSession(TabSession* session)
     // QTabWidget insists on a page widget per tab. The editor surface is shared
     // and owned by MainWindow, so the page is an inert placeholder.
     auto* page = new QWidget(this);
-    const int index = addTab(page, session->title());
+    const bool first = count() == 0;
+    int index;
+    {
+        const QSignalBlocker blocker(this);
+        index = addTab(page, session->title());
+    }
     m_sessions.insert(page, session);
 
     setTabToolTip(index, session->filePath().isEmpty() ? tr("Unsaved") : session->filePath());
@@ -62,6 +69,7 @@ int TabBar::addSession(TabSession* session)
     });
 
     setCurrentIndex(index);
+    if (first) emit currentSessionChanged(session);
     return index;
 }
 
@@ -69,9 +77,10 @@ void TabBar::removeSession(int index)
 {
     if (index < 0 || index >= count())
         return;
-    if (QWidget* page = widget(index))
-        m_sessions.remove(page);
+    QWidget* page = widget(index);
+    m_sessions.remove(page);
     removeTab(index);
+    page->deleteLater();
 }
 
 TabSession* TabBar::sessionAt(int index) const
@@ -107,16 +116,16 @@ void TabBar::onTabCloseRequested(int index)
     if (!session)
         return;
 
+    if (m_managedClose) {
+        emit closeRequested(session);
+        return;
+    }
+
     if (session->isDirty()) {
-        const QMessageBox::StandardButton answer =
-            QMessageBox::question(this,
-                tr("Save changes to %1?").arg(session->title()),
-                tr("This document has unsaved changes."),
-                QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
-                QMessageBox::Save);
-        if (answer == QMessageBox::Cancel)
-            return;
-        if (answer == QMessageBox::Save && !session->save())
+        SaveChangesDialog dialog(this, tr("Save changes before closing?"), session->title());
+        const int result = dialog.exec();
+        if (result != SaveChangesDialog::Discard
+            && (result != SaveChangesDialog::Save || !session->save()))
             return;
     }
     emit closeRequested(session);

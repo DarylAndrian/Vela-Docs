@@ -19,7 +19,7 @@ SetCompressor /SOLID lzma
 !define DESCRIPTION  "A modern word processor combining MS Word + Google Docs"
 !define VERSIONMAJOR 0
 !define VERSIONMINOR 5
-!define VERSIONBUILD 1
+!define VERSIONBUILD 2
 !define VERSION "${VERSIONMAJOR}.${VERSIONMINOR}.${VERSIONBUILD}"
 !define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
 !define HELPURL      "https://github.com/your-org/vela-docs"
@@ -58,6 +58,7 @@ VIAddVersionKey "ProductName" "${APPNAME}"
 VIAddVersionKey "CompanyName" "${COMPANYNAME}"
 VIAddVersionKey "FileDescription" "${APPNAME} Setup"
 VIAddVersionKey "FileVersion" "${VERSION}"
+VIAddVersionKey "LegalCopyright" "Copyright Vela Docs Contributors"
 VIAddVersionKey "ProductVersion" "${VERSION}"
 ShowInstDetails show
 ShowUninstDetails show
@@ -89,7 +90,7 @@ Section "Vela Docs (required)" SecVelaDocs
     SetOutPath "$INSTDIR"
 
     ; windeployqt puts the runtime next to vela-docs.exe.
-    File /r /x "*.pdb" /x "vela-tests-unit.exe" "..\build\bin\Release\*.*"
+    File /r /x "*.pdb" /x "vela-tests-*.exe" "..\build\bin\Release\*.*"
 
     ; Create uninstaller
     WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -136,30 +137,6 @@ Section "Vela Docs (required)" SecVelaDocs
 !endif
 
 SectionEnd
-
-; ──────────────────────────────────────────────────────────────────────────
-; Optional: dictionaries
-; ──────────────────────────────────────────────────────────────────────────
-
-Section "Hunspell dictionaries (English, Spanish, French, German)" SecDicts
-    SetOutPath "$INSTDIR\dictionaries"
-    File /r "..\resources\dictionaries\*.*"
-SectionEnd
-
-; ──────────────────────────────────────────────────────────────────────────
-; Section descriptions (shown on the components page)
-; ──────────────────────────────────────────────────────────────────────────
-
-LangString DESC_SecVelaDocs ${LANG_ENGLISH} \
-    "The core Vela Docs application and Qt runtime libraries (required)."
-
-LangString DESC_SecDicts ${LANG_ENGLISH} \
-    "Spell-check dictionaries for English, Spanish, French, and German. Skip if you only need basic spell-check."
-
-!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecVelaDocs} $(DESC_SecVelaDocs)
-    !insertmacro MUI_DESCRIPTION_TEXT ${SecDicts}   $(DESC_SecDicts)
-!insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ; ──────────────────────────────────────────────────────────────────────────
 ; Uninstaller

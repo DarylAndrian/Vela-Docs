@@ -9,13 +9,13 @@ name: Build & Test
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, 'release/**' ]
   pull_request:
     branches: [ main, develop ]
   workflow_dispatch:
 
 env:
-  QT_VERSION: 6.11.1
+  QT_VERSION: 6.10.3
   BUILD_TYPE: Release
 
 jobs:
@@ -45,8 +45,8 @@ jobs:
           version: ${{ env.QT_VERSION }}
           host: windows
           target: desktop
-          arch: ${{ matrix.arch }}
-          modules: 'qtwebengine qtwebchannel qtpdf qtmultimedia'
+          arch: win64_msvc2022_64
+          modules: 'qtwebengine qtwebchannel'
           cache: true
 
       - name: Install NSIS
@@ -59,7 +59,7 @@ jobs:
         run: |
           cmake -S . -B build -G "Visual Studio 17 2022" -A ${{ matrix.arch }} `
                 -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
-                -DCMAKE_PREFIX_PATH="${{ env.Qt6_Dir }}"
+                -DVE_BUILD_TESTS=ON
 
       - name: Build
         run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
@@ -74,14 +74,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vela-docs-${{ matrix.msvc }}-${{ matrix.arch }}
-          path: build/bin/${{ env.BUILD_TYPE }}/vela-docs.exe
+          path: |
+            build/bin/${{ env.BUILD_TYPE }}/
+            !build/bin/${{ env.BUILD_TYPE }}/vela-tests-*.exe
+            !build/bin/${{ env.BUILD_TYPE }}/**/*.pdb
           if-no-files-found: warn
           retention-days: 14
 
       - name: Build installer
         if: matrix.msvc == '2022'
         run: |
-          & "C:\Program Files (x86)\NSIS\makensis.exe" installer/vela-docs.nsi
+          makensis installer/vela-docs.nsi
 
       - name: Upload installer
         if: matrix.msvc == '2022'

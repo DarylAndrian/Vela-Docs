@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.5.2] — 2026-11-25
+
+- Save the latest edits immediately and preserve the original file if replacement fails.
+- Keep documents in separate tabs with independent undo histories and local crash recovery.
+- Preserve per-document DOCX layout, headers, footers, and page-number fields. Add print preview, printing, and PDF export.
+- Add a heading outline, offline US English spelling suggestions, and Preferences. Improve keyboard access, recent-file recovery, save feedback, and editor dialogs.
+- Align the Windows build with Qt 6.10.3 and add a desktop regression test for saving, tabs, layout, and recovery.
+
 ## [0.5.1] — 2026-11-23
 
 - Redesigned the Windows welcome screen with direct New, Open, and Recent Documents actions.

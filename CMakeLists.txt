@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 3.24)
 project(VelaDocs
-    VERSION 0.5.1
+    VERSION 0.5.2
     DESCRIPTION "A modern word processor combining MS Word + Google Docs features"
     LANGUAGES CXX
 )
@@ -98,6 +98,10 @@ endif()
 set(VE_HAS_WEBCHANNEL FALSE)
 if(Qt6WebChannel_FOUND)
     set(VE_HAS_WEBCHANNEL TRUE)
+endif()
+
+if(WIN32 AND NOT (VE_HAS_WEBENGINE AND VE_HAS_WEBCHANNEL))
+    message(FATAL_ERROR "Vela Docs requires Qt WebEngine and WebChannel on Windows. Use the Qt 6.10.3 MSVC 2022 kit.")
 endif()
 
 set(VE_HAS_MULTIMEDIA FALSE)

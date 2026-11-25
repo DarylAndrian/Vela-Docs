@@ -550,6 +550,60 @@ QDialog {
     background-color: #ffffff;
 }
 
+QDialog#VelaSaveChangesDialog {
+    background-color: #ffffff;
+}
+
+#VelaSaveChangesDialog QLabel#VelaSaveChangesIcon {
+    background-color: #eeedff;
+    color: #4338ca;
+    border-radius: 10px;
+}
+
+#VelaSaveChangesDialog QLabel#VelaSaveChangesHeading {
+    color: #141b2b;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+#VelaSaveChangesDialog QLabel#VelaSaveChangesDescription {
+    color: #505468;
+    font-size: 14px;
+}
+
+#VelaSaveChangesDialog QWidget#VelaSaveChangesFooter {
+    background-color: #f7f7fc;
+    border-top: 1px solid #e5e5f0;
+}
+
+#VelaSaveChangesDialog QPushButton {
+    min-width: 52px;
+    min-height: 34px;
+    padding: 0 14px;
+    font-weight: 600;
+}
+
+#VelaSaveChangesDialog QPushButton#VelaSaveChangesDiscard {
+    color: #a31e39;
+}
+
+#VelaSaveChangesDialog QPushButton#VelaSaveChangesDiscard:hover {
+    background-color: #fcebf0;
+}
+
+#VelaSaveChangesDialog QPushButton#VelaSaveChangesDiscard:pressed {
+    background-color: #f7dce5;
+}
+
+#VelaSaveChangesDialog QPushButton:focus {
+    outline: none;
+    border-color: #5143d9;
+}
+
+#VelaSaveChangesDialog QPushButton[primary="true"]:focus {
+    border-color: #211990;
+}
+
 /* ── Splitters ────────────────────────────────────────────────────────────── */
 QSplitter::handle {
     background-color: #c7c4d8;
@@ -812,6 +866,48 @@ QMainWindow[dark="true"] QToolTip {
 
 QMainWindow[dark="true"] QDialog {
     background-color: #1a1a1a;
+}
+
+QMainWindow[dark="true"] QDialog#VelaSaveChangesDialog {
+    background-color: #171825;
+}
+
+QMainWindow[dark="true"] #VelaSaveChangesDialog QLabel#VelaSaveChangesIcon {
+    background-color: #2e2c52;
+    color: #c7c2ff;
+}
+
+QMainWindow[dark="true"] #VelaSaveChangesDialog QLabel#VelaSaveChangesHeading {
+    color: #f4f3ff;
+}
+
+QMainWindow[dark="true"] #VelaSaveChangesDialog QLabel#VelaSaveChangesDescription {
+    color: #c4c5d6;
+}
+
+QMainWindow[dark="true"] #VelaSaveChangesDialog QWidget#VelaSaveChangesFooter {
+    background-color: #202131;
+    border-top-color: #343549;
+}
+
+QMainWindow[dark="true"] #VelaSaveChangesDialog QPushButton#VelaSaveChangesDiscard {
+    color: #ffacbb;
+}
+
+QMainWindow[dark="true"] #VelaSaveChangesDialog QPushButton#VelaSaveChangesDiscard:hover {
+    background-color: #412b3b;
+}
+
+QMainWindow[dark="true"] #VelaSaveChangesDialog QPushButton#VelaSaveChangesDiscard:pressed {
+    background-color: #563244;
+}
+
+QMainWindow[dark="true"] #VelaSaveChangesDialog QPushButton:focus {
+    border-color: #a5b4fc;
+}
+
+QMainWindow[dark="true"] #VelaSaveChangesDialog QPushButton[primary="true"]:focus {
+    border-color: #e0e7ff;
 }
 
 QMainWindow[dark="true"] QSplitter::handle {

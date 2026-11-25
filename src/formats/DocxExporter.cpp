@@ -36,6 +36,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QList>
+#include <QRegularExpression>
+#include <QSize>
 #include <QString>
 #include <QStringList>
 #include <QUrl>
@@ -60,6 +62,7 @@ struct Package
     QHash<QString, QByteArray> entries;   // zip path -> bytes
     QStringList relationships;            // <Relationship …/> lines, id-ordered
     QStringList mediaExtensions;          // image extensions seen (for [Content_Types])
+    QHash<QString, QString> headerFooterParts;
     int nextRelId   = 1;
     int nextMedia   = 1;
     int nextDocPrId = 1;                  // unique wp:docPr/@id across the document
@@ -387,7 +390,7 @@ QString paragraphProperties(const QJsonObject& node, const QString& numberingXml
     const QJsonObject attrs = node.value(QStringLiteral("attrs")).toObject();
     const QString type = node.value(QStringLiteral("type")).toString();
 
-    QString pStyle, keepNext, pBdr, shd, spacing, ind, jc;
+    QString pStyle, keepNext, frame, pBdr, shd, spacing, ind, jc;
 
     const QString styleId = styleIdForBlock(node);
     if (!styleId.isEmpty())
@@ -395,6 +398,15 @@ QString paragraphProperties(const QJsonObject& node, const QString& numberingXml
 
     if (attrs.value(QStringLiteral("keepWithNext")).toBool(false))
         keepNext = QStringLiteral("<w:keepNext/>");
+
+    const auto runs = node.value(QStringLiteral("content")).toArray();
+    const auto dropCap = runs.isEmpty() ? QJsonObject{} :
+        runs.first().toObject().value(QStringLiteral("_dropCap")).toObject();
+    const QString dropType = dropCap.value(QStringLiteral("type")).toString();
+    if (dropType == QLatin1String("drop") || dropType == QLatin1String("margin")) {
+        frame = QStringLiteral("<w:framePr w:dropCap=\"%1\" w:lines=\"%2\"/>")
+                    .arg(dropType).arg(qBound(1, dropCap.value(QStringLiteral("lines")).toInt(3), 10));
+    }
 
     if (type == QLatin1String("codeBlock"))
         shd = QStringLiteral("<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"F6F6F6\"/>");
@@ -417,7 +429,7 @@ QString paragraphProperties(const QJsonObject& node, const QString& numberingXml
     if (!align.isEmpty())
         jc = QStringLiteral("<w:jc w:val=\"%1\"/>").arg(align);
 
-    const QString pPr = pStyle + keepNext + numberingXml + pBdr + shd + spacing + ind + jc + sectionXml;
+    const QString pPr = pStyle + keepNext + frame + numberingXml + pBdr + shd + spacing + ind + jc + sectionXml;
     return pPr.isEmpty() ? QString() : QStringLiteral("<w:pPr>") + pPr + QStringLiteral("</w:pPr>");
 }
 
@@ -697,15 +709,75 @@ QString renderBlocks(Package& pkg, const QJsonArray& content)
 // CT_SectPr order: type, pgSz, pgMar, paperSrc, pgBorders, lnNumType, pgNumType,
 // cols, formProt, vAlign, noEndnote, titlePg, textDirection, bidi, rtlGutter,
 // docGrid, printerSettings.
-QString sectionProperties(const QJsonObject& sec)
+QString headerFooterReference(Package& pkg, const QString& kind, const QString& text)
+{
+    if (text.isEmpty()) return {};
+    const QString tag = kind == QLatin1String("header") ? QStringLiteral("hdr") : QStringLiteral("ftr");
+    int index = 1;
+    while (pkg.headerFooterParts.contains(kind + QString::number(index) + QStringLiteral(".xml"))) ++index;
+    const QString part = kind + QString::number(index) + QStringLiteral(".xml");
+    pkg.headerFooterParts.insert(part, kind);
+    QString content;
+    static const QRegularExpression token(QStringLiteral("\\{(PAGE|NUMPAGES)\\}"));
+    const auto run = [](const QString& literal) {
+        return QStringLiteral("<w:r><w:t xml:space=\"preserve\">%1</w:t></w:r>").arg(escapeXml(literal));
+    };
+    const QStringList paragraphs = text.split(QLatin1Char('\n'));
+    for (const QString& paragraph : paragraphs) {
+        content += QStringLiteral("<w:p>");
+        auto matches = token.globalMatch(paragraph);
+        qsizetype offset = 0;
+        while (matches.hasNext()) {
+            const auto match = matches.next();
+            content += run(paragraph.mid(offset, match.capturedStart() - offset));
+            content += QStringLiteral("<w:fldSimple w:instr=\"%1\">%2</w:fldSimple>")
+                           .arg(match.captured(1), run(QStringLiteral("1")));
+            offset = match.capturedEnd();
+        }
+        content += run(paragraph.mid(offset)) + QStringLiteral("</w:p>");
+    }
+    pkg.entries.insert(QStringLiteral("word/") + part, QStringLiteral(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+        "<w:%1 xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">%2</w:%1>")
+        .arg(tag, content).toUtf8());
+    const QString id = addRelationship(pkg, kind, part);
+    return QStringLiteral("<w:%1Reference w:type=\"default\" r:id=\"%2\"/>").arg(kind, id);
+}
+
+QString sectionProperties(Package& pkg, QJsonObject sec, const QJsonObject& layout = {})
 {
     QString out;
-    out += QStringLiteral("<w:type w:val=\"%1\"/>")
-        .arg(escapeXml(sec.value(QStringLiteral("type")).toString(QStringLiteral("nextPage"))));
+    for (const auto& kind : {QStringLiteral("header"), QStringLiteral("footer")}) {
+        const auto key = kind + QStringLiteral("Text");
+        const auto text = layout.value(key).toString(sec.value(key).toString());
+        out += headerFooterReference(pkg, kind, text);
+    }
+
+    if (!layout.isEmpty()) {
+        const QString size = layout.value(QStringLiteral("size")).toString();
+        const bool landscape = layout.value(QStringLiteral("orientation")).toString() == QLatin1String("landscape");
+        QSize dims(11906, 16838);
+        if (size == QLatin1String("Letter")) dims = QSize(12240, 15840);
+        if (size == QLatin1String("Legal")) dims = QSize(12240, 20160);
+        if (size == QLatin1String("Tabloid")) dims = QSize(15840, 24480);
+        if (landscape) dims.transpose();
+        sec.insert(QStringLiteral("orient"), landscape ? 1 : 0);
+        sec.insert(QStringLiteral("widthTwips"), dims.width());
+        sec.insert(QStringLiteral("heightTwips"), dims.height());
+        const QStringList sides{QStringLiteral("Top"), QStringLiteral("Right"),
+                                QStringLiteral("Bottom"), QStringLiteral("Left")};
+        for (const auto& side : sides) {
+            const double inches = layout.value(QStringLiteral("margin") + side).toDouble(1);
+            sec.insert(side.toLower(), qRound(qBound(0.0, inches, 5.0) * 1440));
+        }
+        sec.insert(QStringLiteral("titlePg"), layout.value(QStringLiteral("differentFirstPage")).toBool());
+    }
+    const QString type = sec.value(QStringLiteral("type")).toString();
+    if (!type.isEmpty()) out += QStringLiteral("<w:type w:val=\"%1\"/>").arg(escapeXml(type));
 
     const int orient = sec.value(QStringLiteral("orient")).toInt(0);
-    const int pgW = (orient == 1) ? 15840 : 12240;
-    const int pgH = (orient == 1) ? 12240 : 15840;
+    const int pgW = sec.value(QStringLiteral("widthTwips")).toInt(orient == 1 ? 15840 : 12240);
+    const int pgH = sec.value(QStringLiteral("heightTwips")).toInt(orient == 1 ? 12240 : 15840);
     out += QStringLiteral("<w:pgSz w:w=\"%1\" w:h=\"%2\"%3/>")
         .arg(pgW).arg(pgH)
         .arg(orient == 1 ? QStringLiteral(" w:orient=\"landscape\"") : QString());
@@ -724,6 +796,21 @@ QString sectionProperties(const QJsonObject& sec)
     // PageStyle.cpp produces ready-made fragments for these.
     const QString lnNum = sec.value(QStringLiteral("lnNum")).toString();
     if (!lnNum.isEmpty()) out += lnNum;
+    if (!layout.isEmpty() || sec.contains(QStringLiteral("pageNumberStartAt")) || sec.contains(QStringLiteral("pageNumberFormat"))) {
+        const auto format = layout.value(QStringLiteral("pageNumberFormat")).toString(sec.value(QStringLiteral("pageNumberFormat")).toString());
+        const QStringList supported{QStringLiteral("decimal"), QStringLiteral("upperRoman"),
+            QStringLiteral("lowerRoman"), QStringLiteral("upperLetter"), QStringLiteral("lowerLetter")};
+        QString wordFormat = format;
+        if (wordFormat == QLatin1String("upperAlpha")) wordFormat = QStringLiteral("upperLetter");
+        if (wordFormat == QLatin1String("lowerAlpha")) wordFormat = QStringLiteral("lowerLetter");
+        if (!supported.contains(wordFormat)) wordFormat = QStringLiteral("decimal");
+        out += QStringLiteral("<w:pgNumType w:fmt=\"%1\"").arg(wordFormat);
+        if (layout.contains(QStringLiteral("pageNumberStartAt")) || sec.contains(QStringLiteral("pageNumberStartAt"))) {
+            const int start = layout.value(QStringLiteral("pageNumberStartAt")).toInt(sec.value(QStringLiteral("pageNumberStartAt")).toInt(1));
+            out += QStringLiteral(" w:start=\"%1\"").arg(qMax(1, start));
+        }
+        out += QStringLiteral("/>");
+    }
     const QString cols = sec.value(QStringLiteral("cols")).toString();
     if (!cols.isEmpty()) out += cols;
     if (sec.value(QStringLiteral("titlePg")).toBool(false)) out += QStringLiteral("<w:titlePg/>");
@@ -851,6 +938,11 @@ QString buildContentTypes(const Package& pkg, bool hasNumbering)
         overrides += QStringLiteral(
             "  <Override PartName=\"/word/numbering.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml\"/>\n");
     }
+    for (auto it = pkg.headerFooterParts.constBegin(); it != pkg.headerFooterParts.constEnd(); ++it) {
+        overrides += QStringLiteral(
+            "  <Override PartName=\"/word/%1\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.%2+xml\"/>\n")
+            .arg(it.key(), it.value());
+    }
 
     return QStringLiteral(
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
@@ -873,17 +965,18 @@ bool DocxExporter::exportToFile(const QString& path, const QJsonObject& body, QS
     // carries no break positions, so prior sections are emitted as leading
     // section-break paragraphs; every definition still survives the round trip.
     const QJsonArray sections = vela.value(QStringLiteral("sections")).toArray();
+    const auto layout = vela.value(QStringLiteral("pageSettings")).toObject();
     if (sections.isEmpty()) {
-        content += sectionProperties(QJsonObject{});
+        if (!layout.isEmpty()) content += sectionProperties(pkg, {}, layout);
     } else {
         QString breaks;
         for (int i = 0; i + 1 < sections.size(); ++i) {
             breaks += QStringLiteral("<w:p><w:pPr>")
-                    + sectionProperties(sections[i].toObject())
+                    + sectionProperties(pkg, sections[i].toObject())
                     + QStringLiteral("</w:pPr></w:p>");
         }
         content = breaks + content
-                + sectionProperties(sections[sections.size() - 1].toObject());
+                + sectionProperties(pkg, sections.last().toObject(), layout);
     }
 
     const QString documentXml = QStringLiteral(

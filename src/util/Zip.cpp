@@ -6,6 +6,8 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <QSaveFile>
+#include <QTemporaryFile>
 // QZipReader / QZipWriter are QtCore *private* headers (QtCore/6.x/QtCore/private),
 // reached through the Qt6::GuiPrivate -> Qt6::CorePrivate include chain.
 #include <private/qzipreader_p.h>
@@ -40,29 +42,42 @@ bool Zip::openForReading(const QString& path, QHash<QString, QByteArray>& entrie
 
 bool Zip::write(const QString& path, const QHash<QString, QByteArray>& entries)
 {
-    // NOT QSaveFile: QZipWriter::close() dies with STATUS_STACK_BUFFER_OVERRUN
-    // (0xC0000409) when the device is a QSaveFile — reproduced in isolation
-    // against Qt 6.10.3. A plain QFile works, so write to a scratch file and
-    // rename it into place; that keeps the atomic replace QSaveFile promised.
-    const QString tmpPath = path + QStringLiteral(".velatmp");
-    QFile f(tmpPath);
-    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        VE_LOG_ERROR("Zip::write — open failed: " << f.errorString());
+    // QZipWriter closes its device, so stage the archive before committing it
+    // with QSaveFile, which must keep its own device open until commit().
+    QSaveFile destination(path);
+    if (!destination.open(QIODevice::WriteOnly)) {
+        VE_LOG_ERROR("Zip::write — open failed: " << destination.errorString());
         return false;
     }
 
-    QZipWriter zip(&f);
-    zip.setCompressionPolicy(QZipWriter::AlwaysCompress);
-    for (auto it = entries.constBegin(); it != entries.constEnd(); ++it) {
-        zip.addFile(it.key(), it.value());
+    QTemporaryFile staging(QFileInfo(path).absolutePath() + QStringLiteral("/.vela-XXXXXX"));
+    if (!staging.open()) {
+        VE_LOG_ERROR("Zip::write — could not stage archive: " << staging.errorString());
+        return false;
     }
-    zip.close();
-    f.close();
+    {
+        QZipWriter zip(&staging);
+        zip.setCompressionPolicy(QZipWriter::AlwaysCompress);
+        for (auto it = entries.constBegin(); it != entries.constEnd(); ++it) {
+            zip.addFile(it.key(), it.value());
+        }
+        if (!staging.flush() || zip.status() != QZipWriter::NoError) return false;
+        zip.close();
+        if (zip.status() != QZipWriter::NoError || staging.error() != QFileDevice::NoError) {
+            VE_LOG_ERROR("Zip::write — could not finish archive: " << staging.errorString());
+            return false;
+        }
+    }
 
-    QFile::remove(path);
-    if (!QFile::rename(tmpPath, path)) {
-        VE_LOG_ERROR("Zip::write — could not move " << tmpPath << " to " << path);
-        QFile::remove(tmpPath);
+    QFile source(staging.fileName());
+    if (!source.open(QIODevice::ReadOnly)) return false;
+    QByteArray buffer(64 * 1024, Qt::Uninitialized);
+    qint64 count;
+    while ((count = source.read(buffer.data(), buffer.size())) > 0) {
+        if (destination.write(buffer.constData(), count) != count) return false;
+    }
+    if (count < 0 || !destination.commit()) {
+        VE_LOG_ERROR("Zip::write — could not commit " << path << ": " << destination.errorString());
         return false;
     }
     VE_LOG_DEBUG("Zip::write wrote " << entries.size() << " entries to " << path);

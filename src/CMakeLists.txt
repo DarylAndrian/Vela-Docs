@@ -3,9 +3,6 @@
 # ════════════════════════════════════════════════════════════════════════════
 
 set(VE_SOURCES
-    # ── Entry point ──
-    main.cpp
-
     # ── Application shell ──
     app/Application.cpp
     app/Application.h
@@ -66,6 +63,8 @@ set(VE_SOURCES
     services/SpellChecker.h
     services/RevisionStore.cpp
     services/RevisionStore.h
+    services/DraftRecovery.cpp
+    services/DraftRecovery.h
     services/SettingsStore.cpp
     services/SettingsStore.h
     services/UpdateService.cpp
@@ -82,6 +81,8 @@ set(VE_SOURCES
     ui/dialogs/PageSetupDialog.h
     ui/dialogs/PreferencesDialog.cpp
     ui/dialogs/PreferencesDialog.h
+    ui/dialogs/SaveChangesDialog.cpp
+    ui/dialogs/SaveChangesDialog.h
     ui/widgets/FontPicker.cpp
     ui/widgets/FontPicker.h
     ui/widgets/ColorPicker.cpp
@@ -116,7 +117,6 @@ set(VE_RESOURCES
 if(WIN32)
     set(VE_WINDOWS_RESOURCES "${CMAKE_CURRENT_BINARY_DIR}/vela_docs.rc")
     configure_file(vela_docs.rc.in "${VE_WINDOWS_RESOURCES}" @ONLY)
-    list(APPEND VE_RESOURCES "${VE_WINDOWS_RESOURCES}")
     set_source_files_properties("${VE_WINDOWS_RESOURCES}" PROPERTIES
         OBJECT_DEPENDS "${CMAKE_SOURCE_DIR}/resources/icons/vela-docs.ico")
 endif()
@@ -124,11 +124,9 @@ endif()
 # ──────────────────────────────────────────────────────────────────────────
 # The main executable target
 # ──────────────────────────────────────────────────────────────────────────
-qt_add_executable(vela-docs
-    MANUAL_FINALIZATION
-    ${VE_SOURCES}
-    ${VE_RESOURCES}
-)
+add_library(vela-app OBJECT ${VE_SOURCES})
+qt_add_executable(vela-docs MANUAL_FINALIZATION main.cpp ${VE_RESOURCES} ${VE_WINDOWS_RESOURCES})
+target_link_libraries(vela-docs PRIVATE vela-app)
 
 # ──────────────────────────────────────────────────────────────────────────
 # Target properties
@@ -145,7 +143,7 @@ set_target_properties(vela-docs PROPERTIES
 # Include directories
 # ──────────────────────────────────────────────────────────────────────────
 
-target_include_directories(vela-docs PRIVATE
+target_include_directories(vela-app PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src
 )
@@ -154,7 +152,7 @@ target_include_directories(vela-docs PRIVATE
 # Qt linkage — always required
 # ──────────────────────────────────────────────────────────────────────────
 
-target_link_libraries(vela-docs PRIVATE
+target_link_libraries(vela-app PUBLIC
     Qt6::Core
     Qt6::Gui
     Qt6::GuiPrivate   # QZipReader / QZipWriter used by util/Zip.cpp
@@ -168,38 +166,38 @@ target_link_libraries(vela-docs PRIVATE
 
 # Optional Qt modules
 if(VE_HAS_WEBENGINE)
-    target_link_libraries(vela-docs PRIVATE Qt6::WebEngineCore Qt6::WebEngineWidgets)
-    target_compile_definitions(vela-docs PRIVATE VE_HAS_WEBENGINE=1)
+    target_link_libraries(vela-app PUBLIC Qt6::WebEngineCore Qt6::WebEngineWidgets)
+    target_compile_definitions(vela-app PUBLIC VE_HAS_WEBENGINE=1)
 endif()
 
 if(VE_HAS_WEBCHANNEL)
-    target_link_libraries(vela-docs PRIVATE Qt6::WebChannel)
-    target_compile_definitions(vela-docs PRIVATE VE_HAS_WEBCHANNEL=1)
+    target_link_libraries(vela-app PUBLIC Qt6::WebChannel)
+    target_compile_definitions(vela-app PUBLIC VE_HAS_WEBCHANNEL=1)
 endif()
 
 if(VE_HAS_PDF)
-    target_link_libraries(vela-docs PRIVATE Qt6::Pdf Qt6::PdfWidgets)
-    target_compile_definitions(vela-docs PRIVATE VE_HAS_PDF=1)
+    target_link_libraries(vela-app PUBLIC Qt6::Pdf Qt6::PdfWidgets)
+    target_compile_definitions(vela-app PUBLIC VE_HAS_PDF=1)
 endif()
 
 if(VE_HAS_MULTIMEDIA)
-    target_link_libraries(vela-docs PRIVATE Qt6::Multimedia)
-    target_compile_definitions(vela-docs PRIVATE VE_HAS_MULTIMEDIA=1)
+    target_link_libraries(vela-app PUBLIC Qt6::Multimedia)
+    target_compile_definitions(vela-app PUBLIC VE_HAS_MULTIMEDIA=1)
 endif()
 
 # Third-party
 if(VE_USE_CMARK_GFM)
     # cmark-gfm exports "libcmark-gfm" (+ "libcmark-gfm_static"); there is no
     # cmark-gfmext target and no namespaced alias.
-    target_link_libraries(vela-docs PRIVATE libcmark-gfm)
-    target_compile_definitions(vela-docs PRIVATE VE_HAS_MARKDOWN=1)
+    target_link_libraries(vela-app PUBLIC libcmark-gfm)
+    target_compile_definitions(vela-app PUBLIC VE_HAS_MARKDOWN=1)
 endif()
 
 # ──────────────────────────────────────────────────────────────────────────
 # Compiler definitions
 # ──────────────────────────────────────────────────────────────────────────
 
-target_compile_definitions(vela-docs PRIVATE
+target_compile_definitions(vela-app PUBLIC
     VE_VERSION="${PROJECT_VERSION}"
     VE_VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
     VE_VERSION_MINOR=${PROJECT_VERSION_MINOR}
@@ -221,6 +219,9 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${VE_EDITOR_DIR}"
         "$<TARGET_FILE_DIR:vela-docs>/editor"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/resources/dictionaries"
+        "$<TARGET_FILE_DIR:vela-docs>/qtwebengine_dictionaries"
     COMMENT "Copying web editor assets to binary directory"
 )
 
@@ -246,6 +247,9 @@ install(DIRECTORY "${VE_EDITOR_DIR}"
     DESTINATION ${CMAKE_INSTALL_BINDIR}/editor
     FILES_MATCHING PATTERN "*"
 )
+
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/resources/dictionaries/"
+    DESTINATION ${CMAKE_INSTALL_BINDIR}/qtwebengine_dictionaries)
 
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/resources"
     DESTINATION ${CMAKE_INSTALL_DATADIR}/vela-docs

@@ -35,6 +35,8 @@ public:
     // ── Spell check ──
     SpellLanguage spellLanguage() const;
     void setSpellLanguage(SpellLanguage l);
+    bool spellCheckEnabled() const;
+    void setSpellCheckEnabled(bool enabled);
 
     // ── Window geometry ──
     QByteArray windowGeometry() const;

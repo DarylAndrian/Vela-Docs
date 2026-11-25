@@ -12,13 +12,18 @@
 #include "app/WelcomeView.h"
 #include "ui/dialogs/AboutDialog.h"
 #include "ui/dialogs/PageSetupDialog.h"
+#include "ui/dialogs/PreferencesDialog.h"
+#include "ui/dialogs/SaveChangesDialog.h"
 #include "document/Document.h"
 #include "document/DocumentController.h"
+#include "document/TabSession.h"
+#include "services/SettingsStore.h"
 #include "util/Logger.h"
 
 #ifdef VE_HAS_WEBENGINE
 #  include <QWebEngineView>
 #  include <QWebEnginePage>
+#  include <QWebEngineProfile>
 #  include <QWebEngineSettings>
 #endif
 #ifdef VE_HAS_WEBCHANNEL
@@ -27,11 +32,14 @@
 
 #include <QAction>
 #include <QActionGroup>
+#include <QAccessibilityHints>
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDesktopServices>
+#include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
+#include <QEventLoop>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QHBoxLayout>
@@ -40,13 +48,25 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QPageLayout>
+#include <QPrintDialog>
+#include <QPrinter>
+#include <QPushButton>
+#include <QScopeGuard>
+#include <QSaveFile>
+#include <QScopedValueRollback>
+#include <QSignalBlocker>
 #include <QStackedWidget>
+#include <QStandardPaths>
 #include <QStyle>
+#include <QStyleHints>
+#include <QTimer>
 #include <QToolBar>
 #include <QToolButton>
 #include <QUrl>
 #include <QVBoxLayout>
 #include <QWebEngineView>
+#include <memory>
 
 namespace vela {
 
@@ -74,6 +94,7 @@ namespace {
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
+    , m_draftRecovery(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QStringLiteral("/Recovery"))
 {
     VE_LOG_DEBUG("MainWindow constructing");
     setObjectName(QStringLiteral("VelaMainWindow"));
@@ -85,17 +106,7 @@ MainWindow::MainWindow(QWidget* parent)
     setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AnimatedDocks);
 
     m_recentFiles = new RecentFiles(this);
-    m_controller  = new DocumentController(this);
-    m_bridge      = new EditorBridge(m_controller, this);
-
-    connect(m_controller.data(), &DocumentController::activeDocumentChanged,
-            this, &MainWindow::onActiveDocumentChanged);
-    connect(m_controller.data(), &DocumentController::dirtyStateChanged,
-            this, &MainWindow::onDirtyStateChanged);
-    connect(m_controller.data(), &DocumentController::errorOccurred, this,
-            [this](const QString& msg) {
-                QMessageBox::warning(this, tr("Vela Docs"), msg);
-            });
+    m_bridge = new EditorBridge(nullptr, this);
 
     buildActions();
     buildMenuBar();
@@ -109,9 +120,20 @@ MainWindow::MainWindow(QWidget* parent)
 
     wireSignals();
     setupWebChannel();
+    connect(QApplication::styleHints()->accessibility(), &QAccessibilityHints::contrastPreferenceChanged,
+            this, &MainWindow::updateEditorAppearance);
 
     updateWindowTitle();
     showWelcomeView();
+    m_actDarkMode->setChecked(SettingsStore().theme() == SettingsStore::Theme::Dark);
+
+    if (!QCoreApplication::arguments().contains(QStringLiteral("--safe-mode"))) {
+        auto* backup = new QTimer(this);
+        backup->setInterval(5000);
+        connect(backup, &QTimer::timeout, this, &MainWindow::backUpDraft);
+        backup->start();
+        QTimer::singleShot(0, this, &MainWindow::offerDraftRecovery);
+    }
 
     VE_LOG_DEBUG("MainWindow constructed");
 }
@@ -218,10 +240,6 @@ void MainWindow::buildActions()
         sendFormatCmd(m_webView, QStringLiteral("hr"));
     });
 
-    m_actInsertFootnote = new QAction(tr("&Footnote"), this);
-    connect(m_actInsertFootnote, &QAction::triggered, this, [this] {
-        sendFormatCmd(m_webView, QStringLiteral("footnote"));
-    });
 
     // ── Format ──────────────────────────────────────────────────
     m_actBold = new QAction(tr("&Bold"), this);
@@ -302,10 +320,10 @@ void MainWindow::buildActions()
     // ── Page layout / Header & Footer (v0.5.0) ──────────────────
     m_actPageSetup = new QAction(tr("&Page Setup…"), this);
     connect(m_actPageSetup, &QAction::triggered, this, [this] {
-        // Instantiate on demand (matches the codebase pattern for stub dialogs).
-        // The dialog reads current settings, applies changes to the web editor
-        // via window.__velaSetPageSettings() through QWebChannel.
+        QJsonObject settings;
+        if (!synchronizeEditor(&settings)) return;
         PageSetupDialog dlg(m_webView, this);
+        dlg.setSettings(settings);
         dlg.exec();
     });
     m_actHeaderFooter = new QAction(tr("&Header and Footer…"), this);
@@ -372,6 +390,11 @@ void MainWindow::buildActions()
     m_actFocusMode->setCheckable(true);
     connect(m_actFocusMode, &QAction::toggled, this, &MainWindow::toggleFocusMode);
 
+    m_actOutline = new QAction(tr("Document &Outline"), this);
+    m_actOutline->setCheckable(true);
+    m_actOutline->setShortcut(QKeySequence(QStringLiteral("Ctrl+Alt+O")));
+    connect(m_actOutline, &QAction::toggled, this, &MainWindow::updateEditorAppearance);
+
     m_actDarkMode = new QAction(tr("&Dark Mode"), this);
     m_actDarkMode->setShortcut(QKeySequence(QStringLiteral("Ctrl+Shift+D")));
     m_actDarkMode->setCheckable(true);
@@ -390,9 +413,24 @@ void MainWindow::buildActions()
     // ── Output ─────────────────────────────────────────────────
     m_actPrint = new QAction(tr("&Print…"), this);
     m_actPrint->setShortcut(QKeySequence::Print);
-    m_actPrint->setEnabled(false);
+    connect(m_actPrint, &QAction::triggered, this, &MainWindow::printDocument);
+    m_actPrintPreview = new QAction(tr("Print Pre&view…"), this);
+    connect(m_actPrintPreview, &QAction::triggered, this, [this] {
+        if (!m_printPreviews.isValid()) {
+            QMessageBox::warning(this, tr("Print Preview"), tr("Could not create a temporary preview file."));
+            return;
+        }
+        exportDocumentToPdf(m_printPreviews.filePath(tr("Print Preview %1.pdf").arg(++m_previewNumber)), true);
+    });
     m_actExportPdf = new QAction(tr("Export as P&DF…"), this);
-    m_actExportPdf->setEnabled(false);
+    connect(m_actExportPdf, &QAction::triggered, this, [this] {
+        const QString source = currentFile();
+        const QString name = source.isEmpty() ? tr("Untitled") : QFileInfo(source).completeBaseName();
+        QFileDialog dialog(this, tr("Export PDF"), name + QStringLiteral(".pdf"), tr("PDF document (*.pdf)"));
+        dialog.setAcceptMode(QFileDialog::AcceptSave);
+        dialog.setDefaultSuffix(QStringLiteral("pdf"));
+        if (dialog.exec() == QDialog::Accepted) exportDocumentToPdf(dialog.selectedFiles().value(0));
+    });
 
     // ── Settings ───────────────────────────────────────────────
     m_actPreferences = new QAction(tr("&Preferences…"), this);
@@ -440,6 +478,7 @@ void MainWindow::buildMenuBar()
     fileMenu->addAction(m_actSaveAs);
     fileMenu->addSeparator();
     fileMenu->addAction(m_actPrint);
+    fileMenu->addAction(m_actPrintPreview);
     fileMenu->addAction(m_actExportPdf);
     fileMenu->addSeparator();
     fileMenu->addAction(m_actClose);
@@ -466,7 +505,6 @@ void MainWindow::buildMenuBar()
     insertMenu->addSeparator();
     insertMenu->addAction(m_actInsertPageBreak);
     insertMenu->addAction(m_actInsertHorizontalRule);
-    insertMenu->addAction(m_actInsertFootnote);
 
     // ── Format ───────────────────────────────────────────────
     QMenu* formatMenu = m_menuBar->addMenu(tr("F&ormat"));
@@ -530,6 +568,7 @@ void MainWindow::buildMenuBar()
     // ── View ─────────────────────────────────────────────────
     QMenu* viewMenu = m_menuBar->addMenu(tr("&View"));
     viewMenu->addAction(m_actFocusMode);
+    viewMenu->addAction(m_actOutline);
     viewMenu->addAction(m_actDarkMode);
     viewMenu->addSeparator();
     viewMenu->addAction(m_actZoomIn);
@@ -572,6 +611,10 @@ void MainWindow::buildTopBar()
 
     layout->addStretch(1);
 
+    m_documentStatus = new QLabel(m_topBar);
+    m_documentStatus->setTextFormat(Qt::PlainText);
+    layout->addWidget(m_documentStatus);
+
     auto* themeBtn = new QToolButton(m_topBar);
     themeBtn->setObjectName(QStringLiteral("VelaThemeButton"));
     themeBtn->setToolButtonStyle(Qt::ToolButtonTextOnly);
@@ -587,6 +630,7 @@ void MainWindow::buildTabStrip()
     // addToolBar() — buildEditorArea() puts it above the editor instead.
     m_tabBar = new TabBar(this);
     m_tabBar->setObjectName(QStringLiteral("VelaTabBar"));
+    m_tabBar->setManagedClose(true);
 }
 
 void MainWindow::buildLeftRail()
@@ -626,12 +670,15 @@ void MainWindow::buildEditorArea()
     m_welcomeView->setRecentFiles(m_recentFiles->list());
     connect(m_welcomeView, &WelcomeView::newRequested, this, &MainWindow::newDocument);
     connect(m_welcomeView, &WelcomeView::openRequested, this, &MainWindow::openDocumentDialog);
-    connect(m_welcomeView, &WelcomeView::recentRequested, this, &MainWindow::openDocument);
+    connect(m_welcomeView, &WelcomeView::recentRequested, this, &MainWindow::openRecentDocument);
     m_centralStack->addWidget(m_welcomeView);
 
 #ifdef VE_HAS_WEBENGINE
     m_webView = new QWebEngineView(this);
     m_webView->setObjectName(QStringLiteral("VelaEditorCanvas"));
+    auto* profile = m_webView->page()->profile();
+    profile->setSpellCheckLanguages({QStringLiteral("en-US")});
+    profile->setSpellCheckEnabled(SettingsStore().spellCheckEnabled());
     QWebEngineSettings* s = m_webView->page()->settings();
     s->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
     s->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);
@@ -698,6 +745,8 @@ void MainWindow::setupWebChannel()
 
     connect(m_bridge, &EditorBridge::statsChanged,
             this, &MainWindow::onEditorStatsChanged);
+    connect(m_bridge, &EditorBridge::pageSetupRequested, m_actPageSetup, &QAction::trigger,
+            Qt::QueuedConnection);
     connect(m_bridge, &EditorBridge::errorReported, this,
             [this](const QString& where, const QString& msg) {
                 QMessageBox::warning(this, tr("Vela Docs"),
@@ -714,8 +763,17 @@ void MainWindow::wireSignals()
     connect(m_recentFiles, &RecentFiles::changed, m_welcomeView, [this] {
         m_welcomeView->setRecentFiles(m_recentFiles->list());
     });
-    connect(m_tabBar, &TabBar::closeRequested,
-            this, &MainWindow::closeDocument);
+    connect(m_tabBar, &TabBar::closeRequested, this, &MainWindow::closeSession);
+    connect(m_tabBar, &TabBar::newTabRequested, this, &MainWindow::newDocument);
+    connect(m_tabBar, &TabBar::currentSessionChanged, this, [this](TabSession* session) {
+        if (session == m_session) return;
+        if (m_printing || !synchronizeEditor()) {
+            const QSignalBlocker blocker(m_tabBar);
+            m_tabBar->setCurrentIndex(m_tabBar->indexOfSession(m_session));
+            return;
+        }
+        activateSession(session);
+    });
 
     // LeftRail::View is a scoped enum, so the lambdas must take it by value and
     // convert explicitly — Sidebar::showView() wants a plain int index.
@@ -736,12 +794,18 @@ void MainWindow::wireSignals()
 void MainWindow::updateWindowTitle()
 {
     QString title = QStringLiteral("Vela Docs");
-    if (!m_currentFile.isEmpty())
-        title = QFileInfo(m_currentFile).fileName() + QStringLiteral(" — Vela Docs");
-    else if (m_controller && m_controller->activeDocument())
-        title = tr("Untitled — Vela Docs");
-    if (m_controller && m_controller->hasUnsavedChanges())
-        title.prepend(QChar(0x2022) + QStringLiteral(" "));
+    const auto* document = m_controller ? m_controller->activeDocument() : nullptr;
+    if (document) {
+        const QString path = currentFile();
+        const QString name = path.isEmpty() ? tr("Untitled") : QFileInfo(path).fileName();
+        const QString state = m_saving ? tr("Saving…")
+            : (path.isEmpty() || document->isDirty()) ? tr("Unsaved") : tr("Saved");
+        title = tr("%1 — %2 — Vela Docs").arg(name, state);
+        const QString shortName = m_documentStatus->fontMetrics().elidedText(name, Qt::ElideMiddle, 130);
+        m_documentStatus->setText(tr("%1 · %2").arg(shortName, state));
+        m_documentStatus->setAccessibleName(tr("%1 · %2").arg(name, state));
+    }
+    m_documentStatus->setVisible(document != nullptr);
     setWindowTitle(title);
 }
 
@@ -756,9 +820,11 @@ void MainWindow::updateRecentFilesMenu()
         return;
     }
     for (const QString& path : recent) {
-        QAction* act = m_menuRecent->addAction(QFileInfo(path).fileName());
+        const QFileInfo info(path);
+        QString label = tr("%1 — %2").arg(info.fileName(), QDir::toNativeSeparators(info.absolutePath()));
+        QAction* act = m_menuRecent->addAction(label.replace(QLatin1Char('&'), QStringLiteral("&&")));
         act->setToolTip(path);
-        connect(act, &QAction::triggered, this, [this, path]() { openDocument(path); });
+        connect(act, &QAction::triggered, this, [this, path]() { openRecentDocument(path); });
     }
     m_menuRecent->addSeparator();
     QAction* clear = m_menuRecent->addAction(tr("Clear List"));
@@ -776,6 +842,7 @@ void MainWindow::showEditorView()
     if (m_centralStack && m_centralStack->count() > 1)
         m_centralStack->setCurrentIndex(1);
     updateWorkspaceChrome();
+    if (m_webView) m_webView->setFocus();
 }
 
 void MainWindow::updateWorkspaceChrome()
@@ -788,7 +855,11 @@ void MainWindow::updateWorkspaceChrome()
     m_actSave->setEnabled(editing);
     m_actSaveAs->setEnabled(editing);
     m_actClose->setEnabled(editing);
+    m_actPrint->setEnabled(editing && m_webView && !m_printing);
+    m_actPrintPreview->setEnabled(editing && m_webView && !m_printing);
+    m_actExportPdf->setEnabled(editing && m_webView && !m_printing);
     m_actFocusMode->setEnabled(editing);
+    m_actOutline->setEnabled(editing);
     m_actZoomIn->setEnabled(editing);
     m_actZoomOut->setEnabled(editing);
     m_actZoomReset->setEnabled(editing);
@@ -804,37 +875,292 @@ void MainWindow::updateWorkspaceChrome()
 
 bool MainWindow::openDocument(const QString& filePath)
 {
-    if (!m_controller->openDocument(filePath))
-        return false;
-    m_currentFile = filePath;
+    if (m_printing || !synchronizeEditor()) return false;
+    const QFileInfo requested(filePath);
+    for (int index = 0; index < m_tabBar->count(); ++index) {
+        const auto* session = m_tabBar->sessionAt(index);
+        if (!session->filePath().isEmpty() && QFileInfo(session->filePath()) == requested) {
+            m_tabBar->setCurrentIndex(index);
+            return m_session == session;
+        }
+    }
+
+    std::unique_ptr<TabSession> session(createSession());
+    if (!session->load(requested.absoluteFilePath())) return false;
+    addSession(session.release());
     m_recentFiles->add(filePath);
-    showEditorView();
-    updateWindowTitle();
     return true;
+}
+
+QString MainWindow::currentFile() const
+{
+    return m_session ? m_session->filePath() : QString();
+}
+
+TabSession* MainWindow::createSession()
+{
+    auto* session = new TabSession(this);
+    connect(session->controller(), &DocumentController::errorOccurred, this, [this](const QString& message) {
+        QMessageBox::warning(this, tr("Vela Docs"), message);
+    });
+    return session;
+}
+
+void MainWindow::addSession(TabSession* session)
+{
+    const QSignalBlocker blocker(m_tabBar);
+    m_tabBar->addSession(session);
+    activateSession(session);
+}
+
+void MainWindow::activateSession(TabSession* session)
+{
+    if (m_controller) disconnect(m_controller, &DocumentController::dirtyStateChanged, this, &MainWindow::onDirtyStateChanged);
+    m_session = session;
+    m_controller = session ? session->controller() : nullptr;
+    if (m_controller) connect(m_controller, &DocumentController::dirtyStateChanged, this, &MainWindow::onDirtyStateChanged);
+    m_bridge->bindSession(session);
+    m_bridge->bindController(m_controller);
+    if (session) showEditorView();
+    else {
+        m_actFocusMode->setChecked(false);
+        showWelcomeView();
+    }
+    updateWindowTitle();
+}
+
+void MainWindow::openRecentDocument(const QString& path)
+{
+    const QFileInfo info(path);
+    if (info.isFile()) {
+        openDocument(path);
+        return;
+    }
+
+    QMessageBox missing(QMessageBox::Question, tr("Document moved or unavailable"),
+                        tr("Vela Docs couldn't find %1.").arg(info.fileName()), QMessageBox::Cancel, this);
+    missing.setTextFormat(Qt::PlainText);
+    auto* locate = missing.addButton(tr("Locate…"), QMessageBox::ActionRole);
+    auto* remove = missing.addButton(tr("Remove from Recent"), QMessageBox::DestructiveRole);
+    missing.exec();
+    if (missing.clickedButton() == remove) m_recentFiles->remove(path);
+    if (missing.clickedButton() == locate) {
+        const QString replacement = QFileDialog::getOpenFileName(this, tr("Locate document"),
+            info.absolutePath(), tr("Word documents (*.docx)"));
+        if (!replacement.isEmpty() && openDocument(replacement)) m_recentFiles->remove(path);
+    }
 }
 
 bool MainWindow::saveDocument()
 {
-    if (!m_controller) return false;
-    if (m_currentFile.isEmpty()) return saveDocumentAs();
-    return m_controller->saveDocument(m_currentFile);
+    if (!m_controller || !m_controller->activeDocument()) return false;
+    const QString path = currentFile();
+    return path.isEmpty() ? saveDocumentAs() : saveDocumentTo(path);
 }
 
 bool MainWindow::saveDocumentAs()
 {
-    if (!m_controller) return false;
-    const QString dest = QFileDialog::getSaveFileName(this,
-        tr("Save Document As"),
-        QStringLiteral("Untitled.docx"),
-        tr("Word Document (*.docx);;All Files (*)"));
-    if (dest.isEmpty()) return false;
-    if (m_controller->saveDocument(dest)) {
-        m_currentFile = dest;
-        m_recentFiles->add(dest);
-        updateWindowTitle();
-        return true;
+    if (!m_controller || !m_controller->activeDocument() || m_waitingForEditor) return false;
+    const QString suggestion = m_recoveredNames.value(m_session->document()->id(), QStringLiteral("Untitled.docx"));
+    QFileDialog dialog(this, tr("Save Document As"),
+        currentFile().isEmpty() ? suggestion : currentFile(),
+        tr("Word Document (*.docx)"));
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setDefaultSuffix(QStringLiteral("docx"));
+    return dialog.exec() == QDialog::Accepted && saveDocumentTo(dialog.selectedFiles().value(0));
+}
+
+bool MainWindow::saveDocumentTo(const QString& path)
+{
+    if (m_saving || !m_session || path.isEmpty()) return false;
+    const QFileInfo destination(path);
+    for (int index = 0; index < m_tabBar->count(); ++index) {
+        const auto* session = m_tabBar->sessionAt(index);
+        if (session != m_session && !session->filePath().isEmpty() && QFileInfo(session->filePath()) == destination) {
+            QMessageBox::warning(this, tr("Document already open"), tr("Choose another filename or close the tab that already uses this file."));
+            return false;
+        }
     }
+    m_saving = true;
+    updateWindowTitle();
+    const auto finished = qScopeGuard([this] {
+        m_saving = false;
+        updateWindowTitle();
+    });
+    if (!synchronizeEditor() || !m_session->saveAs(destination.absoluteFilePath())) return false;
+    clearBackup(m_session);
+    m_recentFiles->add(destination.absoluteFilePath());
+    return true;
+}
+
+bool MainWindow::preparePrintLayout(QPageLayout& layout)
+{
+#ifdef VE_HAS_WEBENGINE
+    if (m_printing || !m_webView || !m_session) return false;
+    m_webView->page()->runJavaScript(QStringLiteral("window.__velaPreparePrint?.()"));
+    QJsonObject settings;
+    if (!synchronizeEditor(&settings)) return false;
+    QPageSize::PageSizeId size = QPageSize::A4;
+    const auto name = settings.value(QStringLiteral("size")).toString();
+    if (name == QLatin1String("Letter")) size = QPageSize::Letter;
+    if (name == QLatin1String("Legal")) size = QPageSize::Legal;
+    if (name == QLatin1String("Tabloid")) size = QPageSize::Tabloid;
+    const bool landscape = settings.value(QStringLiteral("orientation")).toString() == QLatin1String("landscape");
+    const QMarginsF margins(settings.value(QStringLiteral("marginLeft")).toDouble(1),
+        settings.value(QStringLiteral("marginTop")).toDouble(1),
+        settings.value(QStringLiteral("marginRight")).toDouble(1),
+        settings.value(QStringLiteral("marginBottom")).toDouble(1));
+    layout = QPageLayout(QPageSize(size), landscape ? QPageLayout::Landscape : QPageLayout::Portrait,
+                         margins, QPageLayout::Inch);
+    return true;
+#else
+    Q_UNUSED(layout);
     return false;
+#endif
+}
+
+void MainWindow::exportDocumentToPdf(const QString& path, bool preview)
+{
+#ifdef VE_HAS_WEBENGINE
+    QPageLayout layout;
+    if (path.isEmpty() || !preparePrintLayout(layout)) return;
+    m_printing = true;
+    updateWorkspaceChrome();
+    const QPointer<MainWindow> window(this);
+    m_webView->page()->printToPdf([window, path, preview](const QByteArray& pdf) {
+        if (!window) return;
+        window->m_printing = false;
+        window->updateWorkspaceChrome();
+        QSaveFile file(path);
+        if (pdf.isEmpty() || !file.open(QIODevice::WriteOnly) || file.write(pdf) != pdf.size() || !file.commit()) {
+            QMessageBox::warning(window, tr("PDF export failed"), tr("Vela Docs could not write the PDF."));
+        } else if (preview && !QDesktopServices::openUrl(QUrl::fromLocalFile(path))) {
+            QMessageBox::warning(window, tr("Print Preview"), tr("Windows could not open the PDF preview."));
+        }
+    }, layout);
+#else
+    Q_UNUSED(path);
+    Q_UNUSED(preview);
+#endif
+}
+
+void MainWindow::printDocument()
+{
+#ifdef VE_HAS_WEBENGINE
+    QPageLayout layout;
+    if (!preparePrintLayout(layout)) return;
+    auto printer = std::make_shared<QPrinter>(QPrinter::HighResolution);
+    printer->setPageLayout(layout);
+    QPrintDialog dialog(printer.get(), this);
+    if (dialog.exec() != QDialog::Accepted) return;
+    m_printing = true;
+    updateWorkspaceChrome();
+    connect(m_webView, &QWebEngineView::printFinished, this, [this, printer](bool ok) {
+        m_printing = false;
+        updateWorkspaceChrome();
+        if (!ok) QMessageBox::warning(this, tr("Print failed"), tr("Vela Docs could not print the document."));
+    }, Qt::SingleShotConnection);
+    m_webView->print(printer.get());
+#endif
+}
+
+bool MainWindow::synchronizeEditor(QJsonObject* pageSettings, bool reportFailure)
+{
+#ifdef VE_HAS_WEBENGINE
+    if (m_waitingForEditor) return false;
+    if (!m_webView || !m_controller || !m_controller->activeDocument()) return true;
+
+    const QScopedValueRollback waiting(m_waitingForEditor, true);
+    const QPointer<Document> document = m_controller->activeDocument();
+    QVariant snapshot;
+    QEventLoop loop;
+    const QPointer<QEventLoop> pending(&loop);
+    QTimer timeout;
+    timeout.setSingleShot(true);
+    connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
+    timeout.start(2000);
+    m_webView->page()->runJavaScript(QStringLiteral(
+        "window.__velaEditorSnapshot ? window.__velaEditorSnapshot() : {loading: true}"),
+        [pending, &snapshot](const QVariant& result) {
+            if (!pending) return;
+            snapshot = result;
+            pending->quit();
+        });
+    loop.exec(QEventLoop::ExcludeUserInputEvents);
+    const auto result = snapshot.toMap();
+    if (!m_controller || !document || document != m_controller->activeDocument()) return false;
+    // Until the channel has loaded the active document, the canvas is read-only.
+    if (result.value(QStringLiteral("loading")).toBool()) return true;
+    if (result.value(QStringLiteral("documentId")).toString() != document->id()) {
+        if (reportFailure) QMessageBox::warning(this, tr("Editor unavailable"),
+            tr("Vela Docs could not read the current edits. Try again in a moment."));
+        return false;
+    }
+    if (result.contains(QStringLiteral("body")))
+        m_bridge->setBody(result.value(QStringLiteral("body")).toMap());
+    if (pageSettings) *pageSettings = QJsonObject::fromVariantMap(result.value(QStringLiteral("pageSettings")).toMap());
+#endif
+    return true;
+}
+
+bool MainWindow::confirmDocumentClose(TabSession* session, const QString& prompt)
+{
+    if (!session) return true;
+    if (session == m_session && !synchronizeEditor()) return false;
+    if (!session->isDirty()) return true;
+
+    SaveChangesDialog dialog(this, prompt, session->title());
+    const int result = dialog.exec();
+    if (result == SaveChangesDialog::Discard) return true;
+    if (result != SaveChangesDialog::Save) return false;
+    m_tabBar->setCurrentIndex(m_tabBar->indexOfSession(session));
+    return m_session == session && saveDocument();
+}
+
+void MainWindow::backUpDraft()
+{
+    if (m_saving || QApplication::activeModalWidget() || !SettingsStore().autoSaveEnabled()) return;
+    synchronizeEditor(nullptr, false);
+    for (int index = 0; index < m_tabBar->count(); ++index) {
+        const auto* session = m_tabBar->sessionAt(index);
+        if (session->isDirty() && !m_draftRecovery.store(*session->document()))
+            VE_LOG_WARNING("Unable to write a recovery copy of a document");
+    }
+}
+
+void MainWindow::clearBackup(TabSession* session)
+{
+    const QString id = session->document()->id();
+    m_draftRecovery.clear(id);
+    m_recoveredNames.remove(id);
+}
+
+void MainWindow::offerDraftRecovery()
+{
+    for (const auto& draft : m_draftRecovery.findOrphaned()) {
+        const QString name = draft.originalPath.isEmpty() ? tr("Untitled") : QFileInfo(draft.originalPath).fileName();
+        QMessageBox prompt(QMessageBox::Question, tr("Recover a draft"),
+            tr("Recover edits to %1 from %2?").arg(name, QLocale().toString(draft.savedAt, QLocale::ShortFormat)),
+            QMessageBox::Cancel, this);
+        prompt.setTextFormat(Qt::PlainText);
+        prompt.button(QMessageBox::Cancel)->setText(tr("Later"));
+        auto* recover = prompt.addButton(tr("Recover Copy"), QMessageBox::AcceptRole);
+        auto* discard = prompt.addButton(tr("Discard Draft"), QMessageBox::DestructiveRole);
+        prompt.setDefaultButton(recover);
+        prompt.exec();
+        if (prompt.clickedButton() == discard) {
+            DraftRecovery::removeSnapshot(draft);
+            continue;
+        }
+        if (prompt.clickedButton() != recover) return;
+        if (!synchronizeEditor()) return;
+        auto* session = createSession();
+        session->controller()->restoreDraft(draft.body);
+        const QString suggestion = draft.originalPath.isEmpty() ? tr("Recovered draft.docx") : tr("Recovered - %1").arg(name);
+        m_recoveredNames.insert(session->document()->id(), suggestion);
+        if (m_draftRecovery.store(*session->document())) DraftRecovery::removeSnapshot(draft);
+        addSession(session);
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -843,10 +1169,10 @@ bool MainWindow::saveDocumentAs()
 
 void MainWindow::newDocument()
 {
-    if (m_controller) m_controller->newDocument();
-    m_currentFile.clear();
-    showEditorView();
-    updateWindowTitle();
+    if (m_printing || !synchronizeEditor()) return;
+    auto* session = createSession();
+    session->controller()->newDocument();
+    addSession(session);
 }
 
 void MainWindow::openDocumentDialog()
@@ -858,19 +1184,19 @@ void MainWindow::openDocumentDialog()
 
 void MainWindow::closeDocument()
 {
-    if (!m_controller) return;
-    if (m_controller->hasUnsavedChanges()) {
-        const auto ret = QMessageBox::question(this, tr("Unsaved Changes"),
-            tr("Save changes to %1?").arg(QFileInfo(m_currentFile).fileName()),
-            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-        if (ret == QMessageBox::Cancel) return;
-        if (ret == QMessageBox::Save && !saveDocument()) return;
-    }
-    m_controller->closeActiveDocument();
-    m_currentFile.clear();
-    m_actFocusMode->setChecked(false);
-    showWelcomeView();
-    updateWindowTitle();
+    closeSession(m_session);
+}
+
+void MainWindow::closeSession(TabSession* session)
+{
+    if (m_printing || m_saving || !session || !confirmDocumentClose(session, tr("Save changes before closing?"))) return;
+    const QString id = session->document()->id();
+    clearBackup(session);
+    const QSignalBlocker blocker(m_tabBar);
+    m_tabBar->removeSession(m_tabBar->indexOfSession(session));
+    if (session == m_session) activateSession(m_tabBar->currentSession());
+    m_bridge->forgetDocument(id);
+    session->deleteLater();
 }
 
 void MainWindow::undo()  { sendFormatCmd(m_webView, QStringLiteral("undo")); }
@@ -904,6 +1230,7 @@ void MainWindow::toggleFocusMode()
 void MainWindow::toggleDarkMode()
 {
     m_darkMode = m_actDarkMode->isChecked();
+    SettingsStore().setTheme(m_darkMode ? SettingsStore::Theme::Dark : SettingsStore::Theme::Light);
     setProperty("dark", m_darkMode);
     m_actToggleTheme->setText(m_darkMode ? tr("Light mode") : tr("Dark mode"));
     for (auto* widget : findChildren<QWidget*>()) {
@@ -923,11 +1250,17 @@ void MainWindow::updateEditorAppearance()
 {
 #ifdef VE_HAS_WEBENGINE
     if (m_webView) {
+        const bool highContrast = QApplication::styleHints()->accessibility()->contrastPreference()
+            == Qt::ContrastPreference::HighContrast;
         m_webView->page()->runJavaScript(QStringLiteral(
             "document.documentElement.dataset.theme = '%1';"
-            "document.documentElement.classList.toggle('vela-editor-focus', %2);")
+            "document.documentElement.classList.toggle('vela-editor-focus', %2);"
+            "window.__velaToggleOutline?.(%3);"
+            "document.documentElement.classList.toggle('vela-high-contrast', %4);")
             .arg(m_darkMode ? QStringLiteral("dark") : QStringLiteral("light"),
-                 m_focusMode ? QStringLiteral("true") : QStringLiteral("false")));
+                 m_focusMode ? QStringLiteral("true") : QStringLiteral("false"),
+                 m_actOutline->isChecked() && !m_focusMode ? QStringLiteral("true") : QStringLiteral("false"),
+                 highContrast ? QStringLiteral("true") : QStringLiteral("false")));
     }
 #endif
 }
@@ -944,19 +1277,21 @@ void MainWindow::about()
 
 void MainWindow::showPreferences()
 {
-    QMessageBox::information(this, tr("Preferences"),
-        tr("Preferences dialog — coming in v0.3 (theme, language, spell-check)."));
+    SettingsStore settings;
+    PreferencesDialog dialog(this);
+    dialog.setOptions(m_darkMode, settings.autoSaveEnabled(), settings.spellCheckEnabled());
+    if (dialog.exec() != QDialog::Accepted) return;
+    m_actDarkMode->setChecked(dialog.darkMode());
+    settings.setAutoSaveEnabled(dialog.autoSaveEnabled());
+    settings.setSpellCheckEnabled(dialog.spellCheckEnabled());
+#ifdef VE_HAS_WEBENGINE
+    if (m_webView) m_webView->page()->profile()->setSpellCheckEnabled(dialog.spellCheckEnabled());
+#endif
 }
 
 void MainWindow::showAbout()
 {
     about();
-}
-
-void MainWindow::onActiveDocumentChanged()
-{
-    updateWindowTitle();
-    if (m_controller->activeDocument()) showEditorView();
 }
 
 void MainWindow::onDirtyStateChanged(bool /*dirty*/)
@@ -1003,21 +1338,19 @@ void MainWindow::dropEvent(QDropEvent* event)
     if (!urls.isEmpty()) {
         const QString localPath = urls.first().toLocalFile();
         if (!localPath.isEmpty()) {
-            openDocument(localPath);
-            event->acceptProposedAction();
+            if (openDocument(localPath)) event->acceptProposedAction();
         }
     }
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-    if (m_controller && m_controller->hasUnsavedChanges()) {
-        const auto ret = QMessageBox::question(this, tr("Unsaved Changes"),
-            tr("Save changes before quitting?"),
-            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-        if (ret == QMessageBox::Cancel) { event->ignore(); return; }
-        if (ret == QMessageBox::Save && !saveDocument()) { event->ignore(); return; }
+    event->ignore();
+    if (m_printing || m_saving || !synchronizeEditor()) return;
+    for (int index = 0; index < m_tabBar->count(); ++index) {
+        if (!confirmDocumentClose(m_tabBar->sessionAt(index), tr("Save changes before quitting?"))) return;
     }
+    for (int index = 0; index < m_tabBar->count(); ++index) clearBackup(m_tabBar->sessionAt(index));
     event->accept();
 }
 

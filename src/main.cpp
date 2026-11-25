@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addPositionalArgument(QStringLiteral("file"),
-        QStringLiteral("Optional document file to open (.docx, .doc, .odt, .rtf, .md, .txt, .html)"));
+        QStringLiteral("Optional Word document (.docx) to open"));
 
     QCommandLineOption optNoSplash({QStringLiteral("no-splash")},
         QStringLiteral("Skip the splash screen on startup"));

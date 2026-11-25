@@ -608,6 +608,55 @@ button.tool.has-swatch .swatch-bar {
     overflow: hidden;
 }
 
+.vela-outline {
+    position: fixed;
+    z-index: 12;
+    inset: 100px auto 12px 12px;
+    width: 210px;
+    padding: 12px;
+    overflow: auto;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+}
+.vela-show-outline .canvas { margin-inline-start: 246px; }
+.vela-outline h2 { font-size: 1rem; margin: 0 0 12px; }
+.vela-outline ul { list-style: none; padding: 0; margin: 0; }
+.vela-outline button {
+    width: 100%;
+    padding: 6px 8px;
+    text-align: start;
+    overflow-wrap: anywhere;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-radius: 4px;
+}
+.vela-outline button:hover { background: var(--bg-soft); }
+
+@media screen {
+    html.vela-high-contrast {
+        --bg: Canvas;
+        --bg-soft: Canvas;
+        --text: CanvasText;
+        --text-soft: CanvasText;
+        --text-muted: CanvasText;
+        --border: CanvasText;
+        --accent: LinkText;
+        --accent-soft: Canvas;
+    }
+    .vela-high-contrast .page, .vela-high-contrast .editor, .vela-high-contrast .vela-page-sheet {
+        background: Canvas;
+        color: CanvasText;
+        border-color: CanvasText;
+    }
+}
+button:focus-visible, select:focus-visible, input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
 /* ── Paging mode (v0.5.0 — true A4 auto-flow pagination) ────────────── */
 /* When .page.is-paging is active the PaginationEngine drives the layout:   */
 /* the editor becomes a stack of A4 sheets separated by pageGapPx. The      */
@@ -699,9 +748,15 @@ button.tool.has-swatch .swatch-bar {
 }
 
 @media print {
-    .vela-page-sheet { box-shadow: none; border-radius: 0; }
-    .vela-page-spacer { page-break-after: always; height: 0 !important; }
-    .canvas.is-paging { padding: 0; }
+    html, body { display: block !important; height: auto !important; color: #000; background: #fff; }
+    body > :not(.canvas), .status-bar, .ruler, .vela-page-sheets, .vela-page-spacer { display: none !important; }
+    .canvas, .canvas.is-paging, .page, .page.is-paging, .page .editor, .page.is-paging .editor,
+    .editor .tiptap { display: block; width: auto; min-height: 0; height: auto; overflow: visible;
+        padding: 0 !important; box-shadow: none; background: #fff; color: #000; }
+    .vela-show-outline .canvas { margin-inline-start: 0; }
+    img { max-width: 100%; }
+    tr, img { break-inside: avoid; }
+    .editor .ProseMirror > :first-child { margin-top: 0; }
 }
 
 /* ── Ruler (v0.4.0) ──────────────────────────────────────────────────── */
@@ -1557,9 +1612,7 @@ button.tool.has-swatch .swatch-bar {
 /* ── Table grid picker (v0.4.2 — Google Docs style) ──────────────────── */
 .table-picker { position: relative; display: inline-block; }
 .table-grid-popover {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
+    position: fixed;
     z-index: 300;
     background: var(--bg);
     border: 1px solid var(--border);
@@ -1592,6 +1645,10 @@ button.tool.has-swatch .swatch-bar {
 .table-grid-cell.is-default {
     background: rgba(53, 37, 205, 0.4);
     border-color: var(--accent);
+}
+.table-grid-cell:focus-visible {
+    outline: 2px solid var(--text);
+    outline-offset: 1px;
 }
 .table-grid-label {
     margin-top: 6px;

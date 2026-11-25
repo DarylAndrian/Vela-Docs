@@ -333,11 +333,11 @@ function renderPageSheets(editorDom, pageCount, settings, geom) {
         const footerResolved = resolveTokens(settings.footerText || '', pageNum, pageCount, settings.pageNumberFormat);
         // Skip header on first page if differentFirstPage is set and there's no
         // first-page-specific text (v1: just hide it).
-        const showHeader = !(i === 0 && settings.differentFirstPage && !settings.headerText);
+        const showHeader = !(i === 0 && settings.differentFirstPage);
         const headerHtml = (showHeader && headerResolved)
             ? `<div class="vela-page-header" style="top:${top + mTopPx * 0.3}px;left:${mLeftPx}px;right:${mRightPx}px">${escapeHtml(headerResolved)}</div>`
             : '';
-        const footerHtml = footerResolved
+        const footerHtml = (showHeader && footerResolved)
             ? `<div class="vela-page-footer" style="top:${top + pageHeightPx - mBottomPx * 0.7}px;left:${mLeftPx}px;right:${mRightPx}px">${escapeHtml(footerResolved)}</div>`
             : '';
         html += `<div class="vela-page-sheet" style="top:${top}px;width:${pageWidthPx}px;height:${pageHeightPx}px"></div>${headerHtml}${footerHtml}`;

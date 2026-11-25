@@ -10,6 +10,7 @@
 #include "util/Zip.h"
 
 #include <QDomDocument>
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QHash>
@@ -203,6 +204,7 @@ QJsonObject parseParagraph(QXmlStreamReader& xml, const RelTargets& rels)
     QJsonArray content;
     QString styleId;
     QString textAlign;
+    QJsonObject dropCap;
     int numId = 0, ilvl = 0;
 
     while (!xml.atEnd()) {
@@ -219,6 +221,12 @@ QJsonObject parseParagraph(QXmlStreamReader& xml, const RelTargets& rels)
                             styleId = attrs.value(QStringLiteral("w:val")).toString();
                         } else if (s == QLatin1String("jc")) {
                             textAlign = jcToTextAlign(attrs.value(QStringLiteral("w:val")).toString());
+                        } else if (s == QLatin1String("framePr")) {
+                            const QString kind = attrs.value(QStringLiteral("w:dropCap")).toString();
+                            if (kind == QLatin1String("drop") || kind == QLatin1String("margin")) {
+                                dropCap.insert(QStringLiteral("type"), kind);
+                                dropCap.insert(QStringLiteral("lines"), attrs.value(QStringLiteral("w:lines")).toInt());
+                            }
                         } else if (s == QLatin1String("numPr")) {
                             while (!xml.atEnd()) {
                                 xml.readNext();
@@ -277,6 +285,11 @@ QJsonObject parseParagraph(QXmlStreamReader& xml, const RelTargets& rels)
         attrs.insert(QStringLiteral("_ilvl"),  ilvl);
     }
     if (!attrs.isEmpty()) para.insert(QStringLiteral("attrs"), attrs);
+    if (!dropCap.isEmpty() && !content.isEmpty()) {
+        auto run = content.first().toObject();
+        run.insert(QStringLiteral("_dropCap"), dropCap);
+        content[0] = run;
+    }
     if (!content.isEmpty()) para.insert(QStringLiteral("content"), content);
     return para;
 }
@@ -476,7 +489,8 @@ RelTargets parseRelationships(const QByteArray& relsXml)
         if (xml.isStartElement() && localName(xml.name().toString()) == QLatin1String("Relationship")) {
             const auto a = xml.attributes();
             const QString type = a.value(QStringLiteral("Type")).toString();
-            if (type.endsWith(QLatin1String("/hyperlink")) || type.endsWith(QLatin1String("/image")))
+            if (type.endsWith(QLatin1String("/hyperlink")) || type.endsWith(QLatin1String("/image"))
+                || type.endsWith(QLatin1String("/header")) || type.endsWith(QLatin1String("/footer")))
                 targets.insert(a.value(QStringLiteral("Id")).toString(),
                                a.value(QStringLiteral("Target")).toString());
         }
@@ -530,7 +544,41 @@ QJsonArray groupLists(const QJsonArray& flat, const QHash<int, bool>& orderedByN
     return out;
 }
 
-void absorbSections(const QByteArray& docXml, QJsonObject& vela)
+QString readHeaderFooter(const QByteArray& part)
+{
+    QXmlStreamReader xml(part);
+    QString text;
+    bool inField = false;
+    bool hasParagraph = false;
+    const auto appendField = [&text](const QString& instruction) {
+        const QString name = instruction.simplified().section(QLatin1Char(' '), 0, 0).toUpper();
+        if (name == QLatin1String("PAGE") || name == QLatin1String("NUMPAGES"))
+            text += QStringLiteral("{%1}").arg(name);
+    };
+    while (!xml.atEnd()) {
+        xml.readNext();
+        if (!xml.isStartElement()) continue;
+        if (xml.name() == QLatin1String("p")) {
+            if (hasParagraph) text += QLatin1Char('\n');
+            hasParagraph = true;
+        } else if (xml.name() == QLatin1String("t") && !inField) {
+            text += xml.readElementText();
+        } else if (xml.name() == QLatin1String("fldSimple")) {
+            appendField(xml.attributes().value(QStringLiteral("w:instr")).toString());
+            xml.skipCurrentElement();
+        } else if (xml.name() == QLatin1String("fldChar")) {
+            const auto kind = xml.attributes().value(QStringLiteral("w:fldCharType"));
+            if (kind == QLatin1String("begin")) inField = true;
+            if (kind == QLatin1String("end")) inField = false;
+        } else if (xml.name() == QLatin1String("instrText") && inField) {
+            appendField(xml.readElementText());
+        }
+    }
+    return text;
+}
+
+void absorbSections(const QByteArray& docXml, const RelTargets& rels, const QHash<QString, QByteArray>& entries,
+                    QJsonObject& vela)
 {
     // Walk all <w:sectPr> elements (including the one nested in body pPr).
     // Convert each into a JSON entry stored at vela["sections"].
@@ -544,7 +592,6 @@ void absorbSections(const QByteArray& docXml, QJsonObject& vela)
                 QJsonObject s;
                 QString cols;
                 QString lines;
-                QString titlePg;
                 QString type;
                 bool titlePgSeen = false;
                 while (!xml.atEnd()) {
@@ -552,10 +599,27 @@ void absorbSections(const QByteArray& docXml, QJsonObject& vela)
                     if (xml.isStartElement()) {
                         const QString ln = localName(xml.name().toString());
                         const auto a = xml.attributes();
-                        if (ln == QLatin1String("pgSz")) {
+                        if ((ln == QLatin1String("headerReference") || ln == QLatin1String("footerReference"))
+                            && a.value(QStringLiteral("w:type")) == QLatin1String("default")) {
+                            const QString id = a.value(QStringLiteral("r:id")).toString();
+                            const QString target = rels.value(id);
+                            const QString part = target.startsWith(QLatin1Char('/')) ? target.mid(1)
+                                : QDir::cleanPath(QStringLiteral("word/") + target);
+                            if (entries.contains(part)) s.insert(ln == QLatin1String("headerReference")
+                                ? QStringLiteral("headerText") : QStringLiteral("footerText"), readHeaderFooter(entries.value(part)));
+                        } else if (ln == QLatin1String("pgNumType")) {
+                            const QString format = a.value(QStringLiteral("w:fmt")).toString();
+                            if (!format.isEmpty()) s.insert(QStringLiteral("pageNumberFormat"), format);
+                            const auto start = a.value(QStringLiteral("w:start"));
+                            if (!start.isEmpty()) s.insert(QStringLiteral("pageNumberStartAt"), start.toInt());
+                        } else if (ln == QLatin1String("pgSz")) {
                             const int w = a.value(QStringLiteral("w:w")).toInt();
                             const int h = a.value(QStringLiteral("w:h")).toInt();
                             s.insert(QStringLiteral("orient"), (w > h) ? 1 : 0);
+                            if (w > 0 && h > 0) {
+                                s.insert(QStringLiteral("widthTwips"), w);
+                                s.insert(QStringLiteral("heightTwips"), h);
+                            }
                         } else if (ln == QLatin1String("pgMar")) {
                             s.insert(QStringLiteral("top"),    a.value(QStringLiteral("w:top")).toInt());
                             s.insert(QStringLiteral("right"),  a.value(QStringLiteral("w:right")).toInt());
@@ -568,7 +632,6 @@ void absorbSections(const QByteArray& docXml, QJsonObject& vela)
                             type = a.value(QStringLiteral("w:val")).toString();
                         } else if (ln == QLatin1String("titlePg")) {
                             titlePgSeen = true;
-                            titlePg = QStringLiteral("<w:titlePg/>");
                         } else if (ln == QLatin1String("cols")) {
                             // Rebuild from the real attributes — reading
                             // a.value(QString()) always yields "" and silently
@@ -596,7 +659,7 @@ void absorbSections(const QByteArray& docXml, QJsonObject& vela)
                     }
                 }
                 if (!type.isEmpty())    s.insert(QStringLiteral("type"), type);
-                if (!titlePgSeen)        s.insert(QStringLiteral("titlePg"), false);
+                s.insert(QStringLiteral("titlePg"), titlePgSeen);
                 if (!cols.isEmpty())     s.insert(QStringLiteral("cols"), cols);
                 if (!lines.isEmpty())    s.insert(QStringLiteral("lnNum"), lines);
                 sections.append(s);
@@ -646,11 +709,18 @@ bool DocxImporter::importFromFile(const QString& path, QJsonObject& outBody, QSt
 
     QXmlStreamReader xml(docXml);
     QJsonArray flat;
+    if (!xml.readNextStartElement() || xml.name() != QLatin1String("document")) {
+        outError = QStringLiteral("Missing Word document root");
+        return false;
+    }
+    bool foundBody = false;
     while (!xml.atEnd()) {
         xml.readNext();
         if (xml.isStartElement()) {
             const QString name = localName(xml.name().toString());
-            if (name == QLatin1String("p")) {
+            if (name == QLatin1String("body")) {
+                foundBody = true;
+            } else if (name == QLatin1String("p")) {
                 flat.append(parseParagraph(xml, rels));
             } else if (name == QLatin1String("tbl")) {
                 flat.append(parseTable(xml, rels));
@@ -659,9 +729,14 @@ bool DocxImporter::importFromFile(const QString& path, QJsonObject& outBody, QSt
             }
         }
     }
-    if (xml.hasError() && xml.error() != QXmlStreamReader::PrematureEndOfDocumentError) {
+    if (xml.hasError()) {
         outError = QStringLiteral("XML parse error: %1").arg(xml.errorString());
         VE_LOG_WARNING(outError);
+        return false;
+    }
+    if (!foundBody) {
+        outError = QStringLiteral("Missing Word document body");
+        return false;
     }
 
     const QHash<int, bool> orderedByNumId = parseNumberingFormats(
@@ -687,7 +762,7 @@ bool DocxImporter::importFromFile(const QString& path, QJsonObject& outBody, QSt
         }
     }
     if (vela.isEmpty()) {
-        absorbSections(docXml, vela);
+        absorbSections(docXml, rels, entries, vela);
         if (entries.contains(QStringLiteral("word/settings.xml")))
             absorbSettings(entries.value(QStringLiteral("word/settings.xml")), vela);
     }

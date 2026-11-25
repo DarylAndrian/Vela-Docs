@@ -20,7 +20,7 @@ A complete guide to compiling Vela Docs on **Windows 10/11** *(v0.5.0+)*.
 
 | Tool                | Version             | Notes                                      |
 |---------------------|---------------------|--------------------------------------------|
-| **Qt 6**            | 6.11.1              | Required by CMakeLists.txt (6.11 minimum) |
+| **Qt 6**            | 6.10.3              | Required by CMakeLists.txt (6.10 minimum) |
 | **MSVC**            | VS 2022 (17.x)      | Community edition is fine                  |
 | **CMake**           | 3.24+               | Bundled with VS Installer? Get a fresh one |
 | **Git**             | latest              | For source + submodules                    |
@@ -37,15 +37,15 @@ In the Visual Studio Installer, select:
 
 Download the [Qt Online Installer](https://www.qt.io/download-qt-installer).
 
-When prompted, select **Qt 6.11.1** with these components:
+When prompted, select **Qt 6.10.3** with these components:
 - ✅ MSVC 2022 64-bit
-- ✅ Qt WebEngine (QtWebEngineCore, QtWebEngineWidgets)
+- ✅ Qt WebEngine and Qt WebChannel
 - ✅ Qt PDF
 - ✅ Qt Multimedia
 - ✅ Qt SVG
 - ✅ Sources (helpful for debugging)
 
-Default install path: `C:\Qt\6.11.1\msvc2022_64`. Note this path.
+Default install path: `C:\Qt\6.10.3\msvc2022_64`. Note this path.
 
 ### 1.3 Install CMake (if not already)
 
@@ -76,7 +76,7 @@ cd vela-docs
 
 ```powershell
 cmake -S . -B build -G "Visual Studio 17 2022" -A x64 `
-      -DCMAKE_PREFIX_PATH="C:/Qt/6.11.1/msvc2022_64"
+      -DCMAKE_PREFIX_PATH="C:/Qt/6.10.3/msvc2022_64"
 ```
 
 > ⚠️ Adjust `-DCMAKE_PREFIX_PATH` to match your Qt install directory.
@@ -86,7 +86,7 @@ cmake -S . -B build -G "Visual Studio 17 2022" -A x64 `
 
 1. Open Qt Creator → File → Open File or Project…
 2. Select `CMakeLists.txt`
-3. Choose the **Desktop Qt 6.11.1 MSVC2022 64-bit** kit
+3. Choose the **Desktop Qt 6.10.3 MSVC2022 64-bit** kit
 4. Click **Configure Project**
 
 ---
@@ -114,9 +114,8 @@ Click the green ▶ Run button.
 .\build\bin\Release\vela-docs.exe
 ```
 
-You'll see the welcome screen. Click **Open Document…** and pick a `.docx`
-file. The editor canvas loads with full v0.5.0 features — Page Styles,
-Sections, Columns, Line Numbering, Drop Cap, Document Protection.
+From the welcome screen, choose **New document** or **Open a file…**.
+Each document opens in its own tab. Use **File** for PDF export, preview, and printing.
 
 ### Command-line file open
 ```powershell
@@ -134,13 +133,13 @@ Logs are written to `%APPDATA%\Vela Docs\logs\vela-YYYYMMDD.log`.
 ## 6. Run tests
 
 ```powershell
-cd build
-ctest -C Release --output-on-failure
+$env:Path = 'C:\Qt\6.10.3\msvc2022_64\bin;' + $env:Path
+ctest --test-dir build -C Release --output-on-failure
 ```
 
 Or directly:
 ```powershell
-.\build\tests\unit\Release\vela-tests-unit.exe
+.\build\bin\Release\vela-tests-unit.exe
 ```
 
 ---
@@ -154,8 +153,8 @@ cmake --build build --config Release
 & "C:/Program Files (x86)/NSIS/makensis.exe" installer/vela-docs.nsi
 ```
 
-The installer `VelaDocs-Setup-0.5.1.exe` will be in `installer/`. Pass
-`/DVELA_PER_USER` to `makensis` to build `VelaDocs-Setup-0.5.1-User.exe`
+The installer `VelaDocs-Setup-0.5.2.exe` will be in `installer/`. Pass
+`/DVELA_PER_USER` to `makensis` to build `VelaDocs-Setup-0.5.2-User.exe`
 for the current user without administrator access.
 
 ---
@@ -163,7 +162,7 @@ for the current user without administrator access.
 ## 8. Troubleshooting
 
 ### "Could NOT find Qt6"
-Make sure `-DCMAKE_PREFIX_PATH` points to your Qt install (e.g. `C:/Qt/6.11.1/msvc2022_64`).
+Make sure `-DCMAKE_PREFIX_PATH` points to your Qt install (e.g. `C:/Qt/6.10.3/msvc2022_64`).
 
 ### LNK2019 / unresolved external symbol
 Rebuild with `--clean-first`:

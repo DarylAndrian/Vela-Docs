@@ -60,10 +60,9 @@ bool RevisionStore::ensureSchema()
             snapshot_path   TEXT NOT NULL,
             size_bytes      INTEGER NOT NULL DEFAULT 0
         );
-        CREATE INDEX IF NOT EXISTS idx_revisions_doc
-            ON revisions(document_id, timestamp DESC);
     )SQL");
-    if (!q.exec(create)) {
+    if (!q.exec(create) || !q.exec(QStringLiteral(
+            "CREATE INDEX IF NOT EXISTS idx_revisions_doc ON revisions(document_id, timestamp DESC)"))) {
         VE_LOG_ERROR("RevisionStore schema error: " << q.lastError().text());
         return false;
     }

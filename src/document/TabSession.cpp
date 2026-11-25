@@ -17,7 +17,7 @@ namespace vela {
 TabSession::TabSession(QObject* parent)
     : QObject(parent)
     , m_id(QUuid::createUuid())
-    , m_controller(std::make_unique<DocumentController>())
+    , m_controller(std::make_unique<DocumentController>(this))
 {
     wireController();
 }
@@ -50,14 +50,20 @@ std::unique_ptr<TabSession> TabSession::create(const QString& path)
 std::unique_ptr<TabSession> TabSession::open(const QString& path)
 {
     auto session = std::make_unique<TabSession>();
-    if (!session->m_controller->openDocument(path)) {
+    if (!session->load(path)) {
         VE_LOG_WARNING("TabSession::open failed for " << path);
         return nullptr;
     }
-    session->m_filePath  = path;
-    session->m_lastSaved = QFileInfo(path).lastModified();
-    session->m_dirty     = false;
     return session;
+}
+
+bool TabSession::load(const QString& path)
+{
+    if (!m_controller->openDocument(path)) return false;
+    m_filePath = path;
+    m_lastSaved = QFileInfo(path).lastModified();
+    emit titleChanged(title());
+    return true;
 }
 
 QString TabSession::title() const
@@ -90,13 +96,14 @@ bool TabSession::save()
 
 bool TabSession::saveAs(const QString& path)
 {
+    if (!m_controller->saveDocument(path)) return false;
     const bool pathChanged = (m_filePath != path);
     m_filePath = path;
-    if (Document* doc = document())
-        doc->setFilePath(path);
     if (pathChanged)
         emit titleChanged(title());
-    return save();
+    m_lastSaved = QDateTime::currentDateTime();
+    emit saveStateChanged(m_lastSaved);
+    return true;
 }
 
 void TabSession::wireController()

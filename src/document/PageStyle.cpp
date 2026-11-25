@@ -298,8 +298,9 @@ bool DocumentProtection::fromXml(const QString& xml, DocumentProtection& out)
 
 QString PageStyle::toXmlStyleEntry() const
 {
-    const int w = (orientation == PageOrientation::Landscape) ? heightTwips : widthTwips;
-    const int h = (orientation == PageOrientation::Landscape) ? widthTwips  : heightTwips;
+    const bool landscape = orientation == PageOrientation::Landscape;
+    const int w = landscape ? qMax(widthTwips, heightTwips) : widthTwips;
+    const int h = landscape ? qMin(widthTwips, heightTwips) : heightTwips;
     const QString orientAttr = (orientation == PageOrientation::Landscape)
                               ? QStringLiteral(" w:orient=\"landscape\"")
                               : QString();
@@ -307,7 +308,7 @@ QString PageStyle::toXmlStyleEntry() const
     QString pPr;
     pPr += QStringLiteral("<w:pgSz w:w=\"")  + QString::number(w)
          + QStringLiteral("\" w:h=\"")       + QString::number(h)
-         + orientAttr + QStringLiteral("\"/>");
+         + QStringLiteral("\"") + orientAttr + QStringLiteral("/>");
     pPr += QStringLiteral("<w:pgMar w:top=\"")      + QString::number(marginTop)
          + QStringLiteral("\" w:right=\"")         + QString::number(marginRight)
          + QStringLiteral("\" w:bottom=\"")        + QString::number(marginBottom)
@@ -330,7 +331,7 @@ QString PageStyle::toXmlStyleEntry() const
     if (!footerEvenRef.isEmpty()) pPr += QStringLiteral("<w:footerReference w:type=\"even\"    r:id=\"") + footerEvenRef + QStringLiteral("\"/>");
 
     QString result = QStringLiteral("<w:style w:type=\"page\" w:styleId=\"")
-                   + xmlEsc(id) + QStringLiteral("\">");
+                   + xmlEsc(id) + (builtin ? QStringLiteral("\">") : QStringLiteral("\" w:customStyle=\"1\">"));
     result += QStringLiteral("<w:name w:val=\"") + xmlEsc(name) + QStringLiteral("\"/>");
     result += QStringLiteral("<w:basedOn w:val=\"PageStyleDefault\"/>");
     result += QStringLiteral("<w:pPr>") + pPr + QStringLiteral("</w:pPr>");
@@ -451,9 +452,12 @@ void PageStyleSheet::fromDocxFragment(const QString& xml)
 {
     if (xml.isEmpty()) return;
     QDomDocument d;
-    if (!d.setContent(xml)) return;
-    const QDomElement style = d.documentElement();
-    if (style.tagName() != QLatin1String("style")) return;
+    const QString wrapped = QStringLiteral(
+        "<styles xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" "
+        "xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\">%1</styles>").arg(xml);
+    if (!d.setContent(wrapped)) return;
+    const QDomElement style = d.documentElement().firstChildElement();
+    if (style.tagName() != QLatin1String("w:style") && style.tagName() != QLatin1String("style")) return;
     if (style.attribute(QStringLiteral("w:type")) != QLatin1String("page")) return;
 
     PageStyle p;

@@ -46,3 +46,11 @@ target_include_directories(vela-tests-unit PRIVATE
 
 include(Catch)
 catch_discover_tests(vela-tests-unit)
+
+if(WIN32 AND VE_HAS_WEBENGINE AND VE_HAS_WEBCHANNEL)
+    add_executable(vela-tests-desktop desktop/test_document_workflow.cpp ${CMAKE_SOURCE_DIR}/src/vela_assets.qrc)
+    target_link_libraries(vela-tests-desktop PRIVATE vela-app)
+    add_dependencies(vela-tests-desktop vela-docs)
+    add_test(NAME "Desktop document workflow" COMMAND vela-tests-desktop)
+    set_tests_properties("Desktop document workflow" PROPERTIES TIMEOUT 30)
+endif()

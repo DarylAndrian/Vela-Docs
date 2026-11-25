@@ -13,6 +13,8 @@ import { PAPER_SIZES_MM } from './extensions/pagination.js';
 
 const STORAGE_KEY = 'vela.pageSettings';
 const TWIPS_PER_MM = 1440 / 25.4;
+let documentSettings;
+let onDocumentSettingsChanged;
 
 // Twip dimensions for each paper size (portrait). Landscape swaps w/h.
 export const PAPER_SIZES_TWIPS = {
@@ -44,6 +46,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
  * Load persisted settings (merged with defaults). Returns a fresh object.
  */
 export function loadSettings() {
+    if (documentSettings) return { ...documentSettings };
     let stored = {};
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -56,9 +59,43 @@ export function loadSettings() {
  * Persist settings to localStorage.
  */
 export function saveSettings(settings) {
+    if (documentSettings) {
+        if (Object.keys(settings).every((key) => settings[key] === documentSettings[key])) return;
+        documentSettings = { ...settings };
+        onDocumentSettingsChanged();
+        return;
+    }
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
     } catch (_) { /* private mode */ }
+}
+
+export function loadDocumentSettings(metadata, onChange) {
+    const section = metadata?.sections?.at(-1);
+    const settings = { ...DEFAULT_SETTINGS };
+    if (section) {
+        const landscape = section.orient === 1;
+        const width = landscape ? section.heightTwips : section.widthTwips;
+        const height = landscape ? section.widthTwips : section.heightTwips;
+        settings.orientation = landscape ? 'landscape' : 'portrait';
+        settings.headerText = section.headerText || '';
+        settings.footerText = section.footerText || '';
+        settings.differentFirstPage = Boolean(section.titlePg);
+        settings.pageNumberStartAt = section.pageNumberStartAt || 1;
+        settings.pageNumberFormat = ({ upperLetter: 'upperAlpha', lowerLetter: 'lowerAlpha' })[section.pageNumberFormat]
+            || section.pageNumberFormat || 'decimal';
+        settings.size = Object.keys(PAPER_SIZES_TWIPS).find((size) => {
+            const { w, h } = PAPER_SIZES_TWIPS[size];
+            return Math.abs(width - w) < 20 && Math.abs(height - h) < 20;
+        }) || settings.size;
+        for (const side of ['Top', 'Right', 'Bottom', 'Left']) {
+            const twips = section[side.toLowerCase()];
+            if (typeof twips === 'number') settings[`margin${side}`] = twips / 1440;
+        }
+    }
+    documentSettings = { ...settings, ...metadata?.pageSettings };
+    onDocumentSettingsChanged = onChange;
+    return loadSettings();
 }
 
 /**
@@ -110,6 +147,7 @@ export function applySettings(pagination, settings) {
  * (no QWebChannel) and the Qt host both work the same way.
  */
 export function registerPageSettingsBridge(pagination, onApplied) {
+    window.__velaGetPageSettings = loadSettings;
     window.__velaSetPageSettings = (jsonStr) => {
         let incoming;
         try {

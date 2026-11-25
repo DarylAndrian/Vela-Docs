@@ -20,12 +20,19 @@ const MAX_COLS = 5;
 export function mountTableGridPicker({ button, popover, grid, label, onInsert }) {
     let rows = DEFAULT_ROWS;
     let cols = DEFAULT_COLS;
+    let keyboardOpen = false;
+    button.setAttribute('aria-expanded', 'false');
+    button.setAttribute('aria-controls', popover.id);
+    label.setAttribute('aria-live', 'polite');
 
     // Build the 5×5 grid
     grid.innerHTML = '';
     for (let r = 0; r < MAX_ROWS; r++) {
         for (let c = 0; c < MAX_COLS; c++) {
-            const cell = document.createElement('div');
+            const cell = document.createElement('button');
+            cell.type = 'button';
+            cell.tabIndex = -1;
+            cell.setAttribute('aria-label', `${r + 1} rows by ${c + 1} columns`);
             cell.className = 'table-grid-cell';
             if (r === DEFAULT_ROWS - 1 && c === DEFAULT_COLS - 1) {
                 cell.classList.add('is-default');
@@ -48,11 +55,23 @@ export function mountTableGridPicker({ button, popover, grid, label, onInsert })
 
     updateHighlight();
 
-    const show = () => { popover.hidden = false; };
-    const hide = () => { popover.hidden = true; };
+    const show = () => {
+        popover.hidden = false;
+        const rect = button.getBoundingClientRect();
+        popover.style.left = `${Math.max(0, Math.min(rect.left, window.innerWidth - popover.offsetWidth))}px`;
+        popover.style.top = `${rect.bottom + 2}px`;
+        button.setAttribute('aria-expanded', 'true');
+    };
+    const hide = () => {
+        keyboardOpen = false;
+        popover.hidden = true;
+        button.setAttribute('aria-expanded', 'false');
+    };
+    const focusCell = () => grid.children[(rows - 1) * MAX_COLS + cols - 1].focus();
 
     // Hover over a cell — expand the selection
     grid.addEventListener('mouseover', (e) => {
+        if (keyboardOpen) return;
         const cell = e.target.closest('.table-grid-cell');
         if (!cell) return;
         rows = parseInt(cell.dataset.row, 10) + 1;
@@ -70,6 +89,23 @@ export function mountTableGridPicker({ button, popover, grid, label, onInsert })
         onInsert({ rows: r, cols: c });
     });
 
+    grid.addEventListener('keydown', (e) => {
+        switch (e.key) {
+            case 'ArrowUp': rows = Math.max(1, rows - 1); break;
+            case 'ArrowDown': rows = Math.min(MAX_ROWS, rows + 1); break;
+            case 'ArrowLeft': cols = Math.max(1, cols - 1); break;
+            case 'ArrowRight': cols = Math.min(MAX_COLS, cols + 1); break;
+            case 'Escape': hide(); button.focus(); e.stopPropagation(); return;
+            default: return;
+        }
+        e.preventDefault();
+        updateHighlight();
+        focusCell();
+    });
+    grid.addEventListener('focusout', (e) => {
+        if (keyboardOpen && !grid.contains(e.relatedTarget)) hide();
+    });
+
     // Show/hide the popover
     let hoverTimeout;
     button.addEventListener('mouseenter', () => {
@@ -79,19 +115,19 @@ export function mountTableGridPicker({ button, popover, grid, label, onInsert })
         clearTimeout(hoverTimeout);
         hoverTimeout = setTimeout(() => {
             // Only hide if we're not over the popover
-            if (!popover.matches(':hover')) hide();
+            if (!keyboardOpen && !popover.matches(':hover')) hide();
         }, 120);
     });
     popover.addEventListener('mouseenter', () => clearTimeout(hoverTimeout));
     popover.addEventListener('mouseleave', () => {
-        hoverTimeout = setTimeout(hide, 100);
+        hoverTimeout = setTimeout(() => { if (!keyboardOpen) hide(); }, 100);
     });
 
-    // Clicking the button inserts the default 3×3 immediately
     button.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        hide();
-        onInsert({ rows: DEFAULT_ROWS, cols: DEFAULT_COLS });
+        keyboardOpen = true;
+        show();
+        focusCell();
     });
 }

@@ -322,41 +322,58 @@ export function openTabStopDialog(currentStops) {
 function openModal({ title, render, width = 460 }) {
     return new Promise((resolve) => {
         const root = ensureModalRoot();
+        const previousFocus = document.activeElement;
         const overlay = document.createElement('div');
         overlay.className = 'modal-overlay';
 
         const dialog = document.createElement('div');
         dialog.className = 'modal-dialog';
+        dialog.setAttribute('role', 'dialog');
+        dialog.setAttribute('aria-modal', 'true');
+        dialog.setAttribute('aria-label', title);
         dialog.style.width = width + 'px';
         dialog.innerHTML = `
             <header class="modal-header">
                 <h2>${escapeHtml(title)}</h2>
-                <button class="modal-close" data-action="close">\u2715</button>
+                <button class="modal-close" data-action="close" aria-label="Close">\u2715</button>
             </header>
             <div class="modal-body"></div>
         `;
         overlay.appendChild(dialog);
 
         const body = dialog.querySelector('.modal-body');
-        render(body, resolve);
-
         const closeWith = (value) => {
             overlay.remove();
-            document.removeEventListener('keydown', onKey);
+            document.removeEventListener('keydown', onKey, true);
+            previousFocus?.focus();
             resolve(value);
         };
         const onKey = (e) => {
-            if (e.key === 'Escape') closeWith(null);
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                closeWith(null);
+            }
+            if (e.key !== 'Tab') return;
+            const fields = [...dialog.querySelectorAll('button, input, select, textarea, a[href]')]
+                .filter((field) => !field.disabled && field.getClientRects().length);
+            const first = fields[0];
+            const last = fields.at(-1);
+            if (!dialog.contains(document.activeElement) || (e.shiftKey ? document.activeElement === first : document.activeElement === last)) {
+                e.preventDefault();
+                (e.shiftKey ? last : first)?.focus();
+            }
         };
+        render(body, closeWith);
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) closeWith(null);
         });
         dialog.querySelector('[data-action="close"]').addEventListener('click', () => closeWith(null));
-        document.addEventListener('keydown', onKey);
+        document.addEventListener('keydown', onKey, true);
 
         root.appendChild(overlay);
 
-        setTimeout(() => body.querySelector('input, select, textarea, button')?.focus(), 50);
+        body.querySelector('input, select, textarea, button')?.focus();
     });
 }
 

@@ -40,6 +40,7 @@ public slots:
     bool saveDocument(const QString& filePath);
     void closeActiveDocument();
     void newDocument();
+    void restoreDraft(const QJsonObject& body);
     void undo();
     void redo();
 
