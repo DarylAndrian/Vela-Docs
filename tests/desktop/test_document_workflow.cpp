@@ -23,6 +23,7 @@
 #include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QTimer>
+#include <QToolButton>
 #include <QWebEnginePage>
 #include <QWebEngineProfile>
 #include <QWebEngineView>
@@ -97,10 +98,26 @@ int main(int argc, char** argv)
 
     const QString first = files.filePath("first.docx");
     const QString invalid = files.filePath("invalid.docx");
+    const QString wordFile = files.filePath("word-empty-runs.docx");
     QString error;
     vela::DocxExporter exporter;
     if (!expect(exporter.exportToFile(first, textDocument("Initial text"), error), "Create initial DOCX")) return 1;
     if (!expect(vela::Zip::write(invalid, {{"word/document.xml", "<w:document"}}), "Create malformed DOCX")) return 1;
+    if (!expect(vela::Zip::write(wordFile, {{"word/document.xml", R"XML(
+        <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+          <w:body>
+            <w:p>
+              <w:r><w:rPr><w:b/></w:rPr></w:r>
+              <w:r><w:t>Word</w:t></w:r>
+              <w:r><w:t xml:space="preserve">  </w:t></w:r>
+              <w:hyperlink>
+                <w:r><w:t/></w:r>
+                <w:r><w:t>link</w:t></w:r>
+              </w:hyperlink>
+            </w:p>
+            <w:p><w:r><w:rPr><w:i/></w:rPr></w:r></w:p>
+          </w:body>
+        </w:document>)XML"}}), "Create Word DOCX with empty runs")) return 1;
 
     auto* web = window.findChild<QWebEngineView*>("VelaEditorCanvas");
     auto* welcome = window.findChild<QPushButton*>("VelaWelcomeNew");
@@ -115,6 +132,51 @@ int main(int argc, char** argv)
     welcome->click();
     waitForEvents(150);
     if (!expect(evaluate(page, "window.__editor.getText() === '' && window.__editor.isEditable").toBool(), "New opens a blank, editable document")) return 1;
+    if (!expect(!tabs->isVisible(), "One document does not need a tab strip")) return 1;
+    if (!expect(window.openDocument(wordFile), "Open DOCX with empty Word runs")) return 1;
+    if (!expect(tabs->isVisible() && tabs->count() == 2, "Two documents show the tab strip")) return 1;
+    if (!expect(evaluate(page, "window.__editor.state.doc.firstChild.textContent === 'Word  link' && "
+                              "window.__editor.state.doc.lastChild.type.name === 'paragraph' && "
+                              "window.__editor.state.doc.lastChild.childCount === 0").toBool(),
+                "Empty text runs preserve document text, spaces and blank paragraphs")) return 1;
+    auto* themeButton = window.findChild<QToolButton*>("VelaThemeButton");
+    if (!expect(themeButton != nullptr, "Find the theme button")) return 1;
+    const QString paperColors = R"JS((() => {
+        const ink = getComputedStyle(window.__editor.view.dom).color;
+        const paper = getComputedStyle(document.querySelector('.page')).backgroundColor;
+        return ink + ' on ' + paper;
+    })())JS";
+    const QVariant lightPaper = evaluate(page, paperColors);
+    themeButton->click();
+    if (!expect(evaluate(page, "document.documentElement.dataset.theme === 'dark'").toBool()
+                && evaluate(page, paperColors) == lightPaper,
+                "Dark mode keeps document text legible on white paper")) return 1;
+    themeButton->click();
+    window.closeDocument();
+    if (!expect(!tabs->isVisible() && tabs->count() == 1, "Closing the second document hides the tab strip")) return 1;
+
+    const QString longFile = files.filePath("long.docx");
+    auto longBody = textDocument("A paragraph in a long document.");
+    const auto paragraph = longBody.value("content").toArray().first();
+    QJsonArray paragraphs;
+    for (int i = 0; i < 100; ++i) paragraphs.append(paragraph);
+    longBody.insert("content", paragraphs);
+    if (!expect(exporter.exportToFile(longFile, longBody, error) && window.openDocument(longFile),
+                "Open a long DOCX")) return 1;
+    if (!expect(evaluate(page, R"JS((() => {
+        const canvas = document.querySelector('.canvas');
+        const paper = document.querySelector('.page');
+        const last = window.__editor.view.dom.lastElementChild;
+        const viewport = canvas.getBoundingClientRect();
+        canvas.scrollTop = 0;
+        if (last.getBoundingClientRect().bottom <= viewport.bottom) return false;
+        canvas.scrollTop = canvas.scrollHeight;
+        const end = last.getBoundingClientRect();
+        return canvas.scrollTop > 0 && paper.scrollTop === 0
+            && end.top >= viewport.top && end.bottom <= viewport.bottom;
+    })())JS").toBool(), "The canvas scrollbar reaches the last paragraph")) return 1;
+    window.closeDocument();
+
     if (!expect(window.openDocument(first), "Open initial document")) return 1;
     waitForEvents(150);
     auto* original = tabs->currentSession();

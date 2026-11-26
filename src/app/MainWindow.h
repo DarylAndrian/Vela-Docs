@@ -50,6 +50,7 @@ public:
     ~MainWindow() override;
 
     bool openDocument(const QString& filePath);
+    bool canOpenFromShell() const;
     bool saveDocument();
     bool saveDocumentAs();
     void exportDocumentToPdf(const QString& path, bool preview = false);
@@ -240,6 +241,7 @@ private:
     bool    m_focusMode = false;
     bool    m_darkMode  = false;
     bool    m_waitingForEditor = false;
+    bool    m_closingWindow = false;
     bool    m_saving = false;
     bool    m_printing = false;
     DraftRecovery m_draftRecovery;

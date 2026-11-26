@@ -19,6 +19,7 @@ TabBar::TabBar(QWidget* parent)
     : QTabWidget(parent)
 {
     setObjectName(QStringLiteral("VelaTabBar"));
+    setAttribute(Qt::WA_StyledBackground);
     setTabsClosable(true);
     setMovable(true);
     setDocumentMode(true);

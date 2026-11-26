@@ -8,6 +8,7 @@
 #include <QPointer>
 #include <QString>
 #include <QStringList>
+#include <QTimer>
 
 // QPointer<MainWindow> needs MainWindow to be complete.
 #include "app/MainWindow.h"
@@ -30,6 +31,7 @@ public:
     ~Application() override;
 
     void showMainWindow(const QString& initialFile = {});
+    void enqueueDocumentLaunch(const QStringList& files);
 
     MainWindow* mainWindow() const { return m_mainWindow; }
     SettingsStore* settings() const { return m_settings; }
@@ -41,12 +43,15 @@ public:
 private:
     void registerQtResources();
     void loadApplicationStyle();
+    void processDocumentLaunch();
     QFont pickFont(const QString& preferred, const QStringList& fallbacks) const;
 
     QPointer<MainWindow>    m_mainWindow;
     SettingsStore*          m_settings  = nullptr;
     RevisionStore*          m_revisions = nullptr;
-    QString                 m_pendingInitialFile;
+    QStringList             m_pendingLaunches;
+    QTimer                  m_launchTimer;
+    bool                    m_handlingLaunch = false;
 };
 
 } // namespace vela

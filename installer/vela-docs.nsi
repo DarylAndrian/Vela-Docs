@@ -19,9 +19,12 @@ SetCompressor /SOLID lzma
 !define DESCRIPTION  "A modern word processor combining MS Word + Google Docs"
 !define VERSIONMAJOR 0
 !define VERSIONMINOR 5
-!define VERSIONBUILD 2
+!define VERSIONBUILD 4
 !define VERSION "${VERSIONMAJOR}.${VERSIONMINOR}.${VERSIONBUILD}"
 !define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
+!define CAPABILITIES_KEY "Software\Vela Docs\Capabilities"
+!define DOCX_PROGID "VelaDocs.Document"
+!define APPLICATION_KEY "Software\Classes\Applications\vela-docs.exe"
 !define HELPURL      "https://github.com/your-org/vela-docs"
 !define UPDATEURL    "https://github.com/your-org/vela-docs/releases"
 !define ABOUTURL     "https://github.com/your-org/vela-docs"
@@ -127,14 +130,21 @@ Section "Vela Docs (required)" SecVelaDocs
     WriteRegDWORD ${INSTALL_REGISTRY} "${UNINSTALL_KEY}" \
                      "EstimatedSize"   "${INSTALLSIZE}"
 
-!ifndef VELA_PER_USER
-    ; File-type association for .docx (opens with Vela Docs)
-    WriteRegStr HKCR ".docx" "" "VelaDocs.Document"
-    WriteRegStr HKCR "VelaDocs.Document" "" "Word Document"
-    WriteRegStr HKCR "VelaDocs.Document\DefaultIcon" "" "$\"$INSTDIR\vela-docs.exe$\",0"
-    WriteRegStr HKCR "VelaDocs.Document\shell\open\command" "" \
-                     "$\"$INSTDIR\vela-docs.exe$\" $\"%1$\""
-!endif
+    ; Offer Vela Docs in Open with and Default apps for this installation scope.
+    SetRegView 64
+    WriteRegStr ${INSTALL_REGISTRY} "Software\Classes\${DOCX_PROGID}" "" "Word Document"
+    WriteRegStr ${INSTALL_REGISTRY} "Software\Classes\${DOCX_PROGID}\DefaultIcon" "" "$\"$INSTDIR\vela-docs.exe$\",0"
+    WriteRegStr ${INSTALL_REGISTRY} "Software\Classes\${DOCX_PROGID}\shell\open\command" "" "$\"$INSTDIR\vela-docs.exe$\" $\"%1$\""
+    WriteRegStr ${INSTALL_REGISTRY} "Software\Classes\.docx\OpenWithProgids" "${DOCX_PROGID}" ""
+    WriteRegStr ${INSTALL_REGISTRY} "${APPLICATION_KEY}" "FriendlyAppName" "${APPNAME}"
+    WriteRegStr ${INSTALL_REGISTRY} "${APPLICATION_KEY}\SupportedTypes" ".docx" ""
+    WriteRegStr ${INSTALL_REGISTRY} "${APPLICATION_KEY}\shell\open\command" "" "$\"$INSTDIR\vela-docs.exe$\" $\"%1$\""
+    WriteRegStr ${INSTALL_REGISTRY} "${CAPABILITIES_KEY}" "ApplicationName" "${APPNAME}"
+    WriteRegStr ${INSTALL_REGISTRY} "${CAPABILITIES_KEY}" "ApplicationDescription" "${DESCRIPTION}"
+    WriteRegStr ${INSTALL_REGISTRY} "${CAPABILITIES_KEY}" "ApplicationIcon" "$\"$INSTDIR\vela-docs.exe$\",0"
+    WriteRegStr ${INSTALL_REGISTRY} "${CAPABILITIES_KEY}\FileAssociations" ".docx" "${DOCX_PROGID}"
+    WriteRegStr ${INSTALL_REGISTRY} "Software\RegisteredApplications" "${APPNAME}" "${CAPABILITIES_KEY}"
+    System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
 
 SectionEnd
 
@@ -154,8 +164,19 @@ Section "Uninstall"
 
     ; Registry
     DeleteRegKey ${INSTALL_REGISTRY} "${UNINSTALL_KEY}"
+    SetRegView 64
+    DeleteRegValue ${INSTALL_REGISTRY} "Software\RegisteredApplications" "${APPNAME}"
+    DeleteRegKey ${INSTALL_REGISTRY} "${CAPABILITIES_KEY}"
+    DeleteRegKey ${INSTALL_REGISTRY} "${APPLICATION_KEY}"
+    DeleteRegValue ${INSTALL_REGISTRY} "Software\Classes\.docx\OpenWithProgids" "${DOCX_PROGID}"
+    DeleteRegKey /ifempty ${INSTALL_REGISTRY} "Software\Classes\.docx\OpenWithProgids"
+    DeleteRegKey ${INSTALL_REGISTRY} "Software\Classes\${DOCX_PROGID}"
 !ifndef VELA_PER_USER
-    DeleteRegKey HKCR ".docx"
-    DeleteRegKey HKCR "VelaDocs.Document"
+    ; Older machine-wide installers set this shared default value.
+    ReadRegStr $0 HKLM "Software\Classes\.docx" ""
+    ${If} $0 == "${DOCX_PROGID}"
+        DeleteRegValue HKLM "Software\Classes\.docx" ""
+    ${EndIf}
 !endif
+    System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
 SectionEnd

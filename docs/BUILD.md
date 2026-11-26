@@ -153,8 +153,8 @@ cmake --build build --config Release
 & "C:/Program Files (x86)/NSIS/makensis.exe" installer/vela-docs.nsi
 ```
 
-The installer `VelaDocs-Setup-0.5.2.exe` will be in `installer/`. Pass
-`/DVELA_PER_USER` to `makensis` to build `VelaDocs-Setup-0.5.2-User.exe`
+The installer `VelaDocs-Setup-0.5.4.exe` will be in `installer/`. Pass
+`/DVELA_PER_USER` to `makensis` to build `VelaDocs-Setup-0.5.4-User.exe`
 for the current user without administrator access.
 
 ---

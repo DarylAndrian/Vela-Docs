@@ -1,6 +1,6 @@
 {
   "name": "vela-editor-playground",
-  "version": "0.5.2",
+  "version": "0.5.4",
   "private": true,
   "type": "module",
   "description": "Vite + TipTap dev playground for Vela Docs — single source of truth for the editor UI; both `npm run dev` (live) and `npm run build:production` (bundled into src/editor/dist/) load the same extensions.",

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.5.4] — 2026-11-26
+
+- Open Explorer documents as tabs in the existing window and show the tab bar when two or more documents are open.
+
+## [0.5.3] — 2026-11-26
+
+- Register Vela Docs in Windows Default Apps and fix a startup crash when opening DOCX files from File Explorer.
+- Open Word documents that contain empty text runs while preserving their text, spacing, and blank paragraphs.
+- Match the title bar and document tabs to the selected theme and keep text readable on white paper in dark mode.
+- Let the mouse wheel and scrollbar reach the full document in continuous and paged views.
+
 ## [0.5.2] — 2026-11-25
 
 - Save the latest edits immediately and preserve the original file if replacement fails.

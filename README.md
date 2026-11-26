@@ -4,7 +4,7 @@
 > professional feature density of **Microsoft Word** with the clean, modern
 > ergonomics of **Google Docs**.
 
-[![Version](https://img.shields.io/badge/version-0.5.2-blueviolet)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.5.4-blueviolet)](CHANGELOG.md)
 [![C++](https://img.shields.io/badge/C%2B%2B-20-blue)](isocpp.org)
 [![Qt](https://img.shields.io/badge/Qt-6.10.3-green)](qt.io)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
@@ -274,7 +274,7 @@ build.bat run
 ```
 
 Output: `build\bin\Release\vela-docs.exe`
-The NSIS installer is written to `installer\VelaDocs-Setup-0.5.2.exe`.
+The NSIS installer is written to `installer\VelaDocs-Setup-0.5.4.exe`.
 
 See [docs/BUILD.md](docs/BUILD.md) for full instructions.
 

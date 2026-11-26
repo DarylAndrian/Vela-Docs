@@ -155,6 +155,9 @@ QJsonObject parseRun(QXmlStreamReader& xml, const RelTargets& rels,
         marks.append(makeMark(QStringLiteral("link"), l));
     }
 
+    // Formatting-only Word runs have no text node in ProseMirror.
+    if (text.isEmpty()) return {};
+
     QJsonObject run;
     run.insert(QStringLiteral("type"), QStringLiteral("text"));
     run.insert(QStringLiteral("text"), text);
@@ -254,7 +257,8 @@ QJsonObject parseParagraph(QXmlStreamReader& xml, const RelTargets& rels)
                     }
                 }
             } else if (name == QLatin1String("r")) {
-                content.append(parseRun(xml, rels));
+                const auto run = parseRun(xml, rels);
+                if (!run.isEmpty()) content.append(run);
             } else if (name == QLatin1String("hyperlink")) {
                 const QString relId = xml.attributes().value(QStringLiteral("r:id")).toString();
                 const QString href  = rels.value(relId);
@@ -262,7 +266,8 @@ QJsonObject parseParagraph(QXmlStreamReader& xml, const RelTargets& rels)
                     xml.readNext();
                     if (xml.isStartElement()
                         && localName(xml.name().toString()) == QLatin1String("r")) {
-                        content.append(parseRun(xml, rels, href));
+                        const auto run = parseRun(xml, rels, href);
+                        if (!run.isEmpty()) content.append(run);
                     } else if (xml.isEndElement()
                             && localName(xml.name().toString()) == QLatin1String("hyperlink")) {
                         break;

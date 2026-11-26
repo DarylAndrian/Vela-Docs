@@ -1483,11 +1483,14 @@ if (!nativeEditor) window.__welcome = mountWelcome(document.body, {
 // Status bar version chip
 (function mountVersionChip() {
     if (nativeEditor) return;
+    const version = `v${APP_VERSION}`;
+    const footerVersion = document.getElementById('page-footer-version');
+    if (footerVersion) footerVersion.textContent = version;
     const statusEl = document.getElementById('status');
     if (!statusEl || statusEl.querySelector('.version-chip')) return;
     const chip = document.createElement('span');
     chip.className = 'version-chip';
-    chip.textContent = `v${APP_VERSION}`;
+    chip.textContent = version;
     statusEl.insertBefore(chip, statusEl.firstChild);
 })();
 

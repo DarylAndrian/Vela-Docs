@@ -68,7 +68,7 @@
 }
 
 /* ── Design tokens ────────────────────────────────────────────────────── */
-:root {
+:root, .page {
     --bg: #FFFFFF;
     --bg-soft: #F7F7FA;
     --bg-rail: #2A2A3A;
@@ -598,14 +598,15 @@ button.tool.has-swatch .swatch-bar {
     background: var(--bg-soft);
     display: flex;
     justify-content: center;
+    align-items: flex-start;
 }
 .page {
-    background: #FFFFFF;
+    color: var(--text);
+    background: var(--bg);
     width: 8.5in;
     min-height: 11in;
     box-shadow: var(--shadow-sm);
     border-radius: 2px;
-    overflow: hidden;
 }
 
 .vela-outline {
@@ -636,7 +637,7 @@ button.tool.has-swatch .swatch-bar {
 .vela-outline button:hover { background: var(--bg-soft); }
 
 @media screen {
-    html.vela-high-contrast {
+    html.vela-high-contrast, html.vela-high-contrast .page {
         --bg: Canvas;
         --bg-soft: Canvas;
         --text: CanvasText;
@@ -665,7 +666,6 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 /* cards with shadows.                                                       */
 .canvas.is-paging {
     padding: 32px 16px;
-    align-items: flex-start;
 }
 .page.is-paging {
     /* Geometry is set via CSS vars by mountPagination.applyGeometryCss(): */
@@ -676,7 +676,6 @@ button:focus-visible, select:focus-visible, input:focus-visible {
     background: transparent;
     box-shadow: none;
     border-radius: 0;
-    overflow: visible;
     position: relative;
 }
 .page.is-paging .editor {
@@ -713,7 +712,7 @@ button:focus-visible, select:focus-visible, input:focus-visible {
     left: 0;
     right: 0;
     margin: 0 auto;
-    background: #FFFFFF;
+    background: var(--bg);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     border-radius: 2px;
 }
@@ -1584,6 +1583,18 @@ button:focus-visible, select:focus-visible, input:focus-visible {
 }
 ::-webkit-scrollbar-track {
     background: transparent;
+}
+
+.canvas::-webkit-scrollbar {
+    width: 14px;
+}
+.canvas::-webkit-scrollbar-thumb {
+    background: #858ba3;
+    border: 2px solid var(--bg-soft);
+    border-radius: 7px;
+}
+.canvas::-webkit-scrollbar-thumb:hover {
+    background: #67728b;
 }
 /* ════════════════════════════════════════════════════════════════════════════
  *  v0.4.2 — Hamburger menu, table grid picker, tabbed table settings panel

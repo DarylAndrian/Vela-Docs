@@ -612,6 +612,7 @@ void MainWindow::buildTopBar()
     layout->addStretch(1);
 
     m_documentStatus = new QLabel(m_topBar);
+    m_documentStatus->setObjectName(QStringLiteral("VelaDocumentStatus"));
     m_documentStatus->setTextFormat(Qt::PlainText);
     layout->addWidget(m_documentStatus);
 
@@ -629,7 +630,6 @@ void MainWindow::buildTabStrip()
     // TabBar is a QTabWidget, not a QToolBar, so it cannot go through
     // addToolBar() — buildEditorArea() puts it above the editor instead.
     m_tabBar = new TabBar(this);
-    m_tabBar->setObjectName(QStringLiteral("VelaTabBar"));
     m_tabBar->setManagedClose(true);
 }
 
@@ -870,7 +870,12 @@ void MainWindow::updateWorkspaceChrome()
     m_leftRail->setVisible(showNativeTools);
     m_statusBar->setVisible(showNativeTools);
     if (!showNativeTools) m_sidebar->hide();
-    m_tabBar->setVisible(editing && !m_focusMode && m_tabBar->count() > 0);
+    m_tabBar->setVisible(editing && !m_focusMode && m_tabBar->count() > 1);
+}
+
+bool MainWindow::canOpenFromShell() const
+{
+    return !m_waitingForEditor && !m_saving && !m_printing && !m_closingWindow;
 }
 
 bool MainWindow::openDocument(const QString& filePath)
@@ -1195,6 +1200,7 @@ void MainWindow::closeSession(TabSession* session)
     const QSignalBlocker blocker(m_tabBar);
     m_tabBar->removeSession(m_tabBar->indexOfSession(session));
     if (session == m_session) activateSession(m_tabBar->currentSession());
+    else updateWorkspaceChrome();
     m_bridge->forgetDocument(id);
     session->deleteLater();
 }
@@ -1232,6 +1238,7 @@ void MainWindow::toggleDarkMode()
     m_darkMode = m_actDarkMode->isChecked();
     SettingsStore().setTheme(m_darkMode ? SettingsStore::Theme::Dark : SettingsStore::Theme::Light);
     setProperty("dark", m_darkMode);
+    QApplication::styleHints()->setColorScheme(m_darkMode ? Qt::ColorScheme::Dark : Qt::ColorScheme::Light);
     m_actToggleTheme->setText(m_darkMode ? tr("Light mode") : tr("Dark mode"));
     for (auto* widget : findChildren<QWidget*>()) {
         widget->style()->unpolish(widget);
@@ -1345,6 +1352,7 @@ void MainWindow::dropEvent(QDropEvent* event)
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+    const QScopedValueRollback closing(m_closingWindow, true);
     event->ignore();
     if (m_printing || m_saving || !synchronizeEditor()) return;
     for (int index = 0; index < m_tabBar->count(); ++index) {

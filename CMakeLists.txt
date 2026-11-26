@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 3.24)
 project(VelaDocs
-    VERSION 0.5.2
+    VERSION 0.5.4
     DESCRIPTION "A modern word processor combining MS Word + Google Docs features"
     LANGUAGES CXX
 )
